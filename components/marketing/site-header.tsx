@@ -3,8 +3,7 @@ import { MobileNavigation } from "./mobile-navigation";
 import { waitlistPopupAttributes, waitlistPopupHref } from "./waitlist-popup";
 
 const navigation = [
-  { label: "Product", href: "#product" },
-  { label: "How it works", href: "#atomic-consume" },
+  { label: "How it works", href: "#how-it-works" },
   { label: "Providers", href: "#providers" },
   { label: "Pricing", href: "#pricing" },
   { label: "FAQ", href: "#faq" },

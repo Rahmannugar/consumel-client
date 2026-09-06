@@ -34,7 +34,7 @@ export function HeroParallax() {
         totals.balance = 2500;
         totals.usage = 500;
         renderTotals();
-        gsap.set("[data-usage-row]", { opacity: 1, y: 0 });
+        gsap.set("[data-usage-row]", { opacity: 1, x: 0 });
         gsap.set("[data-balance-fill]", { scaleX: 5 / 6 });
         return;
       }
@@ -52,9 +52,9 @@ export function HeroParallax() {
           renderTotals();
         })
         .set("[data-usage-row]", {
-          autoAlpha: 0,
+          autoAlpha: 0.52,
           backgroundColor: "transparent",
-          x: -8,
+          x: 0,
         })
         .set("[data-balance-fill]", { scaleX: 1 })
         .to({}, { duration: 1.1 });
@@ -67,7 +67,6 @@ export function HeroParallax() {
         usageTimeline
           .to(`[data-usage-row='${index}']`, {
             autoAlpha: 1,
-            x: 0,
             backgroundColor: "rgba(85, 185, 255, 0.09)",
             duration: 0.42,
             ease: "power3.out",
@@ -95,28 +94,20 @@ export function HeroParallax() {
           )
           .to(
             `[data-usage-row='${index}']`,
-            { backgroundColor: "transparent", duration: 0.6 },
+            { autoAlpha: 0.52, backgroundColor: "transparent", duration: 0.6 },
             ">-0.18",
           )
           .to({}, { duration: 0.72 });
       });
 
-      usageTimeline.to({}, { duration: 2.1 }).to("[data-usage-row]", {
-        autoAlpha: 0,
-        x: -8,
-        duration: 0.5,
-        stagger: 0.08,
-        ease: "power2.in",
-      });
+      usageTimeline.to({}, { duration: 1.6 });
 
       const introTimeline = gsap.timeline({ onComplete: () => usageTimeline.play(0) });
       introTimeline.fromTo(
         meter,
-        { autoAlpha: 0, rotationX: 5, rotationY: -4, scale: 0.975, y: 36 },
+        { autoAlpha: 0, scale: 0.975, y: 30 },
         {
           autoAlpha: 1,
-          rotationX: 0,
-          rotationY: 0,
           scale: 1,
           y: 0,
           duration: 1.15,
@@ -133,10 +124,8 @@ export function HeroParallax() {
         const y = (event.clientY - bounds.top) / bounds.height - 0.5;
 
         gsap.to(meter, {
-          rotationX: y * -3,
-          rotationY: x * 4,
-          x: x * 10,
-          y: y * 7,
+          x: x * 4,
+          y: y * 3,
           duration: 0.65,
           ease: "power3.out",
           overwrite: "auto",
@@ -145,8 +134,6 @@ export function HeroParallax() {
 
       const resetParallax = () => {
         gsap.to(meter, {
-          rotationX: 0,
-          rotationY: 0,
           x: 0,
           y: 0,
           duration: 0.65,
@@ -174,13 +161,13 @@ export function HeroParallax() {
         className="customer-meter"
         ref={meterRef}
         role="img"
-        aria-label="A customer's AI token meter showing three usage events. The available balance decreases from 3,000 to 2,500 units while usage this period increases to 500 units."
+        aria-label="An API call meter for Customer 1842. Three usage events reduce the available balance from 3,000 to 2,500 calls while consumed usage increases to 500 calls."
       >
         <header className="customer-meter__header">
           <strong>Customer #1842</strong>
           <span>
             <small>Meter</small>
-            <strong>AI tokens</strong>
+            <strong>API calls</strong>
           </span>
         </header>
 
@@ -197,7 +184,7 @@ export function HeroParallax() {
           </section>
 
           <section className="meter-total meter-total--usage">
-            <span>Usage this period</span>
+            <span>Consumed this period</span>
             <div>
               <strong ref={periodUsageRef}>0</strong>
               <small>units</small>
@@ -215,7 +202,7 @@ export function HeroParallax() {
               <div className="usage-ledger__row" data-usage-row={index} key={event.balance}>
                 <span>
                   <strong>{event.amount}</strong>
-                  <small>AI tokens</small>
+                  <small>API calls</small>
                 </span>
                 <b>{event.balance.toLocaleString()}</b>
               </div>

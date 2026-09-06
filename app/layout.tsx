@@ -20,7 +20,7 @@ const onest = localFont({
 export const metadata: Metadata = {
   metadataBase: new URL("https://consumel.com"),
   title: {
-    default: "Consumel — Infrastructure for usage-based billing",
+    default: "Consumel | Infrastructure for usage-based billing",
     template: "%s · Consumel",
   },
   description:
@@ -38,7 +38,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Consumel — Infrastructure for usage-based billing",
+    title: "Consumel | Infrastructure for usage-based billing",
     description:
       "Meter usage, manage balances and entitlements, apply pricing rules, and connect your payment providers.",
     images: ["/opengraph-image.png"],
@@ -53,6 +53,9 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="en" className={`${bricolageGrotesque.variable} ${onest.variable}`}>
+      <head>
+        <script async src="https://tally.so/widgets/embed.js" />
+      </head>
       <body>{children}</body>
     </html>
   );
