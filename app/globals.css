@@ -605,17 +605,20 @@ a:focus-visible {
 .product-flow__stack {
   position: sticky;
   top: calc(50svh - 78px);
-  width: 100%;
-  height: 292px;
+  width: calc(100% + 128px);
+  height: 420px;
   margin-top: calc((58vh - 228px) / 2);
+  margin-inline: -64px;
   overflow: hidden;
+  /* Keep the resting card opaque while blending the entry edge into the grid. */
+  mask-image: linear-gradient(to bottom, black 300px, transparent 420px);
 }
 
 .scroll-stack__position {
   position: absolute;
   top: 32px;
-  right: 0;
-  left: 0;
+  right: 64px;
+  left: 64px;
   height: 228px;
   transform-origin: center top;
   will-change: transform;
@@ -624,6 +627,10 @@ a:focus-visible {
 .scroll-stack__item {
   width: 100%;
   height: 100%;
+}
+
+.scroll-stack__position:not(:first-child) {
+  visibility: hidden;
 }
 
 .flow-stack {

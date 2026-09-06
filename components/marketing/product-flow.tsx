@@ -105,7 +105,7 @@ export function ProductFlow() {
         <div className="product-flow__visual">
           <ScrollStack
             className="product-flow__stack"
-            itemDistance={250}
+            itemDistance={460}
             itemScale={0.018}
             itemStackDistance={16}
             triggerSelector="[data-flow-copy-step]"

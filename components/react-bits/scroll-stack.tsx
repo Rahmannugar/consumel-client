@@ -73,6 +73,7 @@ export function ScrollStack({
             start: "top 58%",
             onEnter: () => showCard(index),
             onEnterBack: () => showCard(index),
+            onLeaveBack: () => showCard(Math.max(index - 1, 0)),
           }),
         );
 
@@ -83,9 +84,33 @@ export function ScrollStack({
         };
       }
 
-      const timelines = cards.slice(1).map((card, cardIndex) => {
+      const transitions = cards.map((_, index) => ({ progress: index === 0 ? 1 : 0 }));
+
+      // Derive every card's pose together so separate scroll tweens cannot
+      // capture and later restore another transition's transform or visibility.
+      const renderCards = () => {
+        cards.forEach((card, index) => {
+          const progress = transitions[index].progress;
+          const depth = transitions
+            .slice(index + 1)
+            .reduce((total, transition) => total + transition.progress, 0);
+
+          gsap.set(card, {
+            visibility: progress > 0 ? "visible" : "hidden",
+            y: (1 - progress) * itemDistance - depth * itemStackDistance,
+            scale: Math.max(1 - depth * itemScale, 0.94),
+          });
+        });
+      };
+
+      renderCards();
+
+      const tweens = cards.slice(1).map((_, cardIndex) => {
         const index = cardIndex + 1;
-        const timeline = gsap.timeline({
+        return gsap.to(transitions[index], {
+          progress: 1,
+          ease: "none",
+          onUpdate: renderCards,
           scrollTrigger: {
             trigger: triggers[index],
             start: "top 82%",
@@ -93,39 +118,12 @@ export function ScrollStack({
             scrub: 0.35,
           },
         });
-
-        timeline.set(card, { visibility: "visible" }, 0).to(
-          card,
-          {
-            duration: 1,
-            ease: "none",
-            y: 0,
-          },
-          0,
-        );
-
-        cards.slice(0, index).forEach((previousCard, previousIndex) => {
-          const depth = index - previousIndex;
-
-          timeline.to(
-            previousCard,
-            {
-              duration: 1,
-              ease: "none",
-              scale: Math.max(1 - depth * itemScale, 0.94),
-              y: depth * -itemStackDistance,
-            },
-            0,
-          );
-        });
-
-        return timeline;
       });
 
       return () => {
-        timelines.forEach((timeline) => {
-          timeline.scrollTrigger?.kill();
-          timeline.kill();
+        tweens.forEach((tween) => {
+          tween.scrollTrigger?.kill();
+          tween.kill();
         });
       };
     },
