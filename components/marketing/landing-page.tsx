@@ -1,5 +1,7 @@
 import { HeroParallax } from "./hero-parallax";
 import { ProductFlow } from "./product-flow";
+import { ProviderShowcase } from "./provider-showcase";
+import { UsagePlayground } from "./usage-playground";
 import { SiteHeader } from "./site-header";
 import { waitlistPopupAttributes, waitlistPopupHref } from "./waitlist-popup";
 
@@ -35,6 +37,8 @@ export function LandingPage() {
       </div>
       <main>
         <ProductFlow />
+        <UsagePlayground />
+        <ProviderShowcase />
       </main>
     </div>
   );

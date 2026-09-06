@@ -10,8 +10,8 @@ const flowSteps = [
   },
   {
     number: "02",
-    title: "Set the rules for each plan",
-    body: "Give customers prepaid credit, postpaid usage, a recurring allowance, or a combination.",
+    title: "Choose how usage is billed",
+    body: "Use prepaid balances, postpaid usage, or included allowances with overage.",
   },
   {
     number: "03",
@@ -86,10 +86,10 @@ export function ProductFlow() {
   return (
     <section className="product-flow" data-scroll-stack-scope id="how-it-works">
       <div className="page-shell product-flow__intro">
-        <h2>Usage, customer state, and billing stay connected.</h2>
+        <h2>How Consumel works.</h2>
         <p>
-          Set different rules for each plan, including free credits, recurring allowances,
-          prepaid balances, postpaid usage, and overage.
+          Define what you measure, choose how usage is billed, and record consumption as
+          customers use your product.
         </p>
       </div>
 

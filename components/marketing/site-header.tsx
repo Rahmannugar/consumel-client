@@ -4,6 +4,7 @@ import { waitlistPopupAttributes, waitlistPopupHref } from "./waitlist-popup";
 
 const navigation = [
   { label: "How it works", href: "#how-it-works" },
+  { label: "Playground", href: "#playground" },
   { label: "Providers", href: "#providers" },
   { label: "Pricing", href: "#pricing" },
   { label: "FAQ", href: "#faq" },

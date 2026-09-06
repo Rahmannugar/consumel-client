@@ -1,330 +1,301 @@
 "use client";
 
-import {
-  CheckCircleIcon,
-  CodeIcon,
-  CopyIcon,
-  MinusIcon,
-  PlusIcon,
-  WarningCircleIcon,
-  XCircleIcon,
-} from "@phosphor-icons/react";
-import { AnimatePresence, motion, useReducedMotion } from "motion/react";
+import { CodeIcon, CopyIcon, PlayIcon } from "@phosphor-icons/react";
 import Image from "next/image";
-import { useMemo, useReducer, useState } from "react";
+import { useReducer, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Label } from "@/components/ui/label";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import {
   type BillingModel,
   createInitialState,
+  createUuidV7,
   type Language,
   playgroundReducer,
   requestCode,
 } from "@/lib/playground/playground";
+import styles from "./usage-playground.module.css";
 
-const models: { id: BillingModel; label: string; note: string }[] = [
-  { id: "prepaid", label: "Prepaid", note: "Use a balance" },
-  { id: "postpaid", label: "Postpaid", note: "Accrue usage" },
-  { id: "hybrid", label: "Hybrid", note: "Allowance + overage" },
+const models: BillingModel[] = ["prepaid", "postpaid", "hybrid"];
+const languages: { name: Language; asset?: string }[] = [
+  { name: "HTTP" },
+  { name: "Node.js", asset: "/assets/sdk/nodejs.svg" },
+  { name: "Go", asset: "/assets/sdk/go.svg" },
+  { name: "Python", asset: "/assets/sdk/python.svg" },
 ];
-
 const meters = [
-  { id: "ai_tokens", label: "AI tokens" },
-  { id: "api_calls", label: "API calls" },
-  { id: "storage_gb", label: "Storage" },
-] as const;
-
-const languages: { id: Language; label: string; asset?: string }[] = [
-  { id: "HTTP", label: "HTTP" },
-  { id: "Node.js", label: "Node.js", asset: "/assets/sdk/nodejs.svg" },
-  { id: "Go", label: "Go", asset: "/assets/sdk/go.svg" },
-  { id: "Python", label: "Python", asset: "/assets/sdk/python.svg" },
+  { key: "api_calls", name: "API calls" },
+  { key: "ai_tokens", name: "AI tokens" },
+  { key: "storage_gb", name: "Storage" },
 ];
+
+function Code({ value }: { value: string }) {
+  const parts = value.split(
+    /("(?:[^"\\]|\\.)*"|\b(?:const|await|result|err|POST|Bearer)\b|\b\d+\b)/g,
+  );
+  let offset = 0;
+
+  return parts.map((part) => {
+    const key = `${offset}:${part}`;
+    offset += part.length;
+
+    return (
+      <span
+        key={key}
+        className={
+          part.startsWith('"')
+            ? styles.string
+            : /^\d+$/.test(part)
+              ? styles.number
+              : /^(const|await|POST|Bearer)$/.test(part)
+                ? styles.keyword
+                : undefined
+        }
+      >
+        {part}
+      </span>
+    );
+  });
+}
 
 export function UsagePlayground() {
   const [state, dispatch] = useReducer(playgroundReducer, undefined, createInitialState);
-  const [copied, setCopied] = useState(false);
-  const reduceMotion = useReducedMotion();
-  const code = useMemo(() => requestCode(state), [state]);
-  const stateValue =
+  const [quantityInput, setQuantityInput] = useState(String(state.quantity));
+  const [grantInput, setGrantInput] = useState("1000");
+  const [copyStatus, setCopyStatus] = useState("");
+
+  const value =
     state.model === "prepaid"
       ? state.balance
       : state.model === "postpaid"
         ? state.periodUsage
         : state.includedRemaining;
-  const stateLabel =
+  const label =
     state.model === "prepaid"
       ? "Available balance"
       : state.model === "postpaid"
         ? "Usage this period"
-        : "Included units left";
-  const hasAllowance = state.model !== "postpaid";
+        : "Included allowance left";
+  const quantity = Number(quantityInput);
+  const grantAmount = Number(grantInput);
+  const validQuantity = quantityInput !== "" && quantity >= 1 && quantity <= 5000;
+  const validGrant = grantInput !== "" && grantAmount >= 1;
+  const code = requestCode(state);
+
+  function consume() {
+    if (!validQuantity) return;
+    dispatch({ type: "quantityChanged", value: quantity });
+    dispatch({ type: "newIdempotencyKey", value: createUuidV7() });
+    dispatch({ type: "consume" });
+  }
+
+  function addBalance() {
+    if (!validGrant) return;
+    dispatch({ type: "grant", value: grantAmount });
+  }
 
   async function copyCode() {
-    await navigator.clipboard.writeText(code);
-    setCopied(true);
-    window.setTimeout(() => setCopied(false), 1400);
+    try {
+      await navigator.clipboard.writeText(code);
+      setCopyStatus("Copied");
+    } catch {
+      setCopyStatus("Copy unavailable");
+    }
   }
 
   return (
-    <section className="playground" id="playground" aria-labelledby="playground-title">
-      <div className="page-shell playground__inner">
-        <header className="playground__heading">
+    <section className={styles.section} id="playground" aria-labelledby="playground-title">
+      <div className="page-shell">
+        <header className={styles.heading}>
           <h2 id="playground-title">Try a consume operation.</h2>
           <p>
-            Change the request and run it. The result, customer state, and activity update
-            together.
+            Choose a billing model, enter a quantity, and see the balance, period usage, or
+            overage update.
           </p>
         </header>
 
-        <div className="playground__frame">
-          <div className="playground__bar">
-            <div className="playground__environment">
-              <span>Environment</span>
-              <strong>Sandbox</strong>
-              <code>cm_test_••••92d</code>
-            </div>
-            <Button variant="quiet" size="compact" onClick={() => dispatch({ type: "reset" })}>
+        <div className={styles.demo}>
+          <div className={styles.toolbar}>
+            <ToggleGroup
+              type="single"
+              value={state.model}
+              className={styles.models}
+              aria-label="Billing model"
+              onValueChange={(value) => {
+                if (models.includes(value as BillingModel)) {
+                  dispatch({ type: "modelChanged", value: value as BillingModel });
+                }
+              }}
+            >
+              {models.map((model) => (
+                <ToggleGroupItem key={model} value={model}>
+                  {model}
+                </ToggleGroupItem>
+              ))}
+            </ToggleGroup>
+            <Button
+              variant="quiet"
+              size="compact"
+              onClick={() => {
+                dispatch({ type: "reset" });
+                setQuantityInput("500");
+                setGrantInput("1000");
+                setCopyStatus("");
+              }}
+            >
               Reset
             </Button>
           </div>
 
-          <fieldset className="model-switch">
-            <legend className="sr-only">Billing model</legend>
-            {models.map((model) => (
-              <button
-                type="button"
-                className={state.model === model.id ? "is-active" : undefined}
-                aria-pressed={state.model === model.id}
-                onClick={() => dispatch({ type: "modelChanged", value: model.id })}
-                key={model.id}
-              >
-                <strong>{model.label}</strong>
-                <span>{model.note}</span>
-              </button>
-            ))}
-          </fieldset>
-
-          <div className="playground__workbench">
-            <div className="request-panel">
-              <div className="panel-title">
-                <strong>Request</strong>
-                <small>Sent by your product</small>
-              </div>
-
-              <div className="field-grid">
-                <label className="field field--wide" htmlFor="playground-customer-id">
-                  <span>
-                    Customer ID <em>Changing this resets the customer state</em>
-                  </span>
-                  <Input
-                    id="playground-customer-id"
-                    value={state.customerId}
-                    onChange={(event) =>
-                      dispatch({ type: "customerChanged", value: event.target.value })
-                    }
-                    spellCheck={false}
-                  />
-                </label>
-
-                <fieldset className="field field--wide meter-picker">
-                  <legend>Meter</legend>
-                  <div>
-                    {meters.map((meter) => (
-                      <button
-                        type="button"
-                        className={state.meterKey === meter.id ? "is-active" : undefined}
-                        aria-pressed={state.meterKey === meter.id}
-                        onClick={() => dispatch({ type: "meterChanged", value: meter.id })}
-                        key={meter.id}
-                      >
-                        {meter.label}
-                      </button>
-                    ))}
-                  </div>
-                </fieldset>
-
-                <label className="field" htmlFor="playground-quantity">
-                  <span>Quantity</span>
-                  <span className="quantity-control">
-                    <button
-                      type="button"
-                      aria-label="Decrease quantity"
-                      onClick={() =>
-                        dispatch({ type: "quantityChanged", value: state.quantity - 100 })
-                      }
-                    >
-                      <MinusIcon weight="bold" aria-hidden="true" />
-                    </button>
-                    <Input
-                      id="playground-quantity"
-                      type="number"
-                      inputMode="numeric"
-                      min={1}
-                      max={5000}
-                      value={state.quantity}
-                      onChange={(event) =>
-                        dispatch({ type: "quantityChanged", value: Number(event.target.value) })
-                      }
-                    />
-                    <button
-                      type="button"
-                      aria-label="Increase quantity"
-                      onClick={() =>
-                        dispatch({ type: "quantityChanged", value: state.quantity + 100 })
-                      }
-                    >
-                      <PlusIcon weight="bold" aria-hidden="true" />
-                    </button>
-                  </span>
-                </label>
-
-                <label className="field" htmlFor="playground-idempotency-key">
-                  <span>Idempotency key</span>
-                  <span className="key-control">
-                    <Input
-                      id="playground-idempotency-key"
-                      value={state.idempotencyKey}
-                      onChange={(event) =>
-                        dispatch({ type: "idempotencyChanged", value: event.target.value })
-                      }
-                      spellCheck={false}
-                    />
-                    <button
-                      type="button"
-                      onClick={() => dispatch({ type: "newIdempotencyKey" })}
-                    >
-                      New key
-                    </button>
-                  </span>
-                </label>
-              </div>
-
-              <div className="request-panel__actions">
-                <Button onClick={() => dispatch({ type: "consume" })}>Run consume</Button>
-                {hasAllowance && (
-                  <Button variant="secondary" onClick={() => dispatch({ type: "grant" })}>
-                    Add 1,000 units
-                  </Button>
-                )}
-              </div>
+          <div className={styles.context}>
+            <div className={styles.customer}>
+              <Label htmlFor="demo-customer">Customer</Label>
+              <Input
+                id="demo-customer"
+                value={state.customerId}
+                onChange={(event) =>
+                  dispatch({ type: "customerChanged", value: event.target.value })
+                }
+                spellCheck={false}
+              />
             </div>
-
-            <div className="state-panel">
-              <div className="panel-title">
-                <strong>Customer state</strong>
-                <small>{state.customerId || "No customer ID"}</small>
-              </div>
-
-              <div className="state-panel__metric">
-                <span>{stateLabel}</span>
-                <AnimatePresence mode="popLayout" initial={false}>
-                  <motion.strong
-                    key={`${state.model}-${stateValue}`}
-                    initial={reduceMotion ? false : { y: -8, opacity: 0 }}
-                    animate={{ y: 0, opacity: 1 }}
-                    exit={reduceMotion ? undefined : { y: 8, opacity: 0 }}
-                  >
-                    {stateValue.toLocaleString()}
-                  </motion.strong>
-                </AnimatePresence>
-                <code>{state.meterKey}</code>
-              </div>
-
-              {state.model === "hybrid" && (
-                <div className="state-panel__overage">
-                  <span>Overage</span>
-                  <strong>{state.overage.toLocaleString()}</strong>
-                </div>
-              )}
-
-              <div
-                className={`consume-result consume-result--${state.result.status}`}
-                aria-live="polite"
+            <div className={styles.meterField}>
+              <span>Meter</span>
+              <ToggleGroup
+                type="single"
+                className={styles.meters}
+                aria-label="Meter"
+                value={state.meterKey}
+                onValueChange={(value) => {
+                  if (value) dispatch({ type: "meterChanged", value });
+                }}
               >
-                <ResultIcon status={state.result.status} />
-                <div>
-                  <strong>{resultTitle(state.result.status)}</strong>
-                  <span>{state.result.message}</span>
-                </div>
-              </div>
-
-              <div className="state-panel__counts">
-                <div>
-                  <span>Billable operations</span>
-                  <strong>{state.billableOperations}</strong>
-                </div>
-                <div>
-                  <span>Overage units</span>
-                  <strong>{state.overage.toLocaleString()}</strong>
-                </div>
-              </div>
+                {meters.map((meter) => (
+                  <ToggleGroupItem key={meter.key} value={meter.key}>
+                    {meter.name}
+                  </ToggleGroupItem>
+                ))}
+              </ToggleGroup>
             </div>
           </div>
 
-          <div className="playground__code-row">
-            <div className="sdk-code">
-              <div className="sdk-code__top">
-                <Tabs
-                  value={state.language}
-                  onValueChange={(value) =>
-                    dispatch({ type: "languageChanged", value: value as Language })
-                  }
-                >
-                  <TabsList aria-label="Integration language">
+          <div className={styles.workspace}>
+            <div className={styles.editor}>
+              <Tabs
+                value={state.language}
+                onValueChange={(value) => {
+                  dispatch({ type: "languageChanged", value: value as Language });
+                  setCopyStatus("");
+                }}
+              >
+                <div className={styles.codeToolbar}>
+                  <TabsList className={styles.languages} aria-label="Code language">
                     {languages.map((language) => (
-                      <TabsTrigger value={language.id} key={language.id}>
+                      <TabsTrigger key={language.name} value={language.name}>
                         {language.asset ? (
-                          <Image src={language.asset} alt="" width={18} height={18} />
+                          <Image src={language.asset} alt="" width={20} height={20} />
                         ) : (
-                          <CodeIcon weight="bold" aria-hidden="true" />
+                          <CodeIcon aria-hidden="true" />
                         )}
-                        {language.label}
+                        <span>{language.name}</span>
                       </TabsTrigger>
                     ))}
                   </TabsList>
-                </Tabs>
-                <button type="button" className="copy-button" onClick={copyCode}>
-                  <CopyIcon weight="bold" aria-hidden="true" /> {copied ? "Copied" : "Copy"}
-                </button>
-              </div>
-              <pre>
-                <code>{code}</code>
-              </pre>
+                  <div className={styles.copyArea}>
+                    <span role="status">{copyStatus}</span>
+                    <Button
+                      variant="quiet"
+                      size="compact"
+                      className={styles.copy}
+                      aria-label="Copy code"
+                      onClick={copyCode}
+                    >
+                      <CopyIcon aria-hidden="true" />
+                    </Button>
+                  </div>
+                </div>
+                {languages.map((language) => (
+                  <TabsContent
+                    key={language.name}
+                    value={language.name}
+                    className={styles.codeContent}
+                  >
+                    <pre>
+                      <code>
+                        <Code value={requestCode({ ...state, language: language.name })} />
+                      </code>
+                    </pre>
+                  </TabsContent>
+                ))}
+              </Tabs>
             </div>
 
-            <div className="activity-panel">
-              <header>
-                <strong>Activity</strong>
-                <span>{state.ledger.length}</span>
-              </header>
-              {state.ledger.length === 0 ? (
-                <div className="activity-empty">
-                  <strong className="activity-empty__title">No activity yet</strong>
-                  <p>Run consume or add units to this customer.</p>
+            <div className={styles.result}>
+              <div className={styles.resultTop}>
+                <span>{label}</span>
+                <span>{meters.find((meter) => meter.key === state.meterKey)?.name}</span>
+              </div>
+              <strong className={styles.balance}>{value.toLocaleString("en-US")}</strong>
+              <div className={styles.progress} aria-hidden="true">
+                <i
+                  style={{
+                    width: `${state.model === "postpaid" ? 100 : Math.min(100, (value / 3000) * 100)}%`,
+                  }}
+                />
+              </div>
+              <div className={styles.feedback} role="status">
+                {state.result.status === "idle"
+                  ? state.model === "hybrid"
+                    ? `Overage: ${state.overage.toLocaleString("en-US")} units`
+                    : ""
+                  : state.result.message}
+              </div>
+
+              <div className={styles.actions}>
+                <div className={styles.quantity}>
+                  <Label htmlFor="demo-quantity">Quantity</Label>
+                  <Input
+                    id="demo-quantity"
+                    type="number"
+                    min={1}
+                    max={5000}
+                    value={quantityInput}
+                    aria-invalid={quantityInput !== "" && !validQuantity}
+                    onChange={(event) => {
+                      const nextValue = event.target.value;
+                      setQuantityInput(nextValue);
+                      const nextQuantity = Number(nextValue);
+                      if (nextValue !== "" && nextQuantity >= 1 && nextQuantity <= 5000) {
+                        dispatch({ type: "quantityChanged", value: nextQuantity });
+                      }
+                    }}
+                  />
                 </div>
-              ) : (
-                <ol>
-                  {state.ledger.map((entry) => (
-                    <motion.li
-                      layout
-                      key={entry.id}
-                      initial={reduceMotion ? false : { opacity: 0, y: -8 }}
-                      animate={{ opacity: 1, y: 0 }}
-                    >
-                      <i className={`tone-${entry.tone}`} />
-                      <span>
-                        <strong>{entry.label}</strong>
-                        <small>event_{String(entry.id).padStart(3, "0")}</small>
-                      </span>
-                      <code>
-                        {entry.amount > 0 ? "+" : ""}
-                        {entry.amount.toLocaleString()}
-                      </code>
-                    </motion.li>
-                  ))}
-                </ol>
+                <Button className={styles.consume} disabled={!validQuantity} onClick={consume}>
+                  <PlayIcon weight="fill" aria-hidden="true" />
+                  Consume
+                </Button>
+              </div>
+
+              {state.model !== "postpaid" && (
+                <div className={styles.grant}>
+                  <Label htmlFor="demo-grant">Add balance</Label>
+                  <div>
+                    <Input
+                      id="demo-grant"
+                      type="number"
+                      min={1}
+                      value={grantInput}
+                      aria-invalid={grantInput !== "" && !validGrant}
+                      onChange={(event) => setGrantInput(event.target.value)}
+                    />
+                    <Button variant="secondary" disabled={!validGrant} onClick={addBalance}>
+                      Add balance
+                    </Button>
+                  </div>
+                </div>
               )}
             </div>
           </div>
@@ -332,24 +303,4 @@ export function UsagePlayground() {
       </div>
     </section>
   );
-}
-
-function ResultIcon({
-  status,
-}: {
-  status: ReturnType<typeof createInitialState>["result"]["status"];
-}) {
-  if (status === "allowed" || status === "replayed")
-    return <CheckCircleIcon weight="fill" aria-hidden="true" />;
-  if (status === "denied" || status === "conflict")
-    return <XCircleIcon weight="fill" aria-hidden="true" />;
-  return <WarningCircleIcon weight="fill" aria-hidden="true" />;
-}
-
-function resultTitle(status: ReturnType<typeof createInitialState>["result"]["status"]) {
-  if (status === "allowed") return "Allowed";
-  if (status === "denied") return "Denied";
-  if (status === "replayed") return "Original result";
-  if (status === "conflict") return "Key conflict";
-  return "No request yet";
 }

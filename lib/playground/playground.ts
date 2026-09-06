@@ -36,10 +36,10 @@ export type PlaygroundAction =
   | { type: "meterChanged"; value: string }
   | { type: "quantityChanged"; value: number }
   | { type: "idempotencyChanged"; value: string }
-  | { type: "newIdempotencyKey" }
+  | { type: "newIdempotencyKey"; value: string }
   | { type: "languageChanged"; value: Language }
   | { type: "consume" }
-  | { type: "grant" }
+  | { type: "grant"; value: number }
   | { type: "reset" };
 
 const idleResult: Result = { status: "idle", message: "Run consume to see the result." };
@@ -55,7 +55,7 @@ function customerContext(model: BillingModel) {
     ledger: [] as LedgerEntry[],
     processed: {} as Record<string, ProcessedRequest>,
     sequence: 0,
-    idempotencyKey: "req_001",
+    idempotencyKey: "01990f7c-32d0-7d5a-9a51-3b1eec975da2",
     keySequence: 1,
   };
 }
@@ -96,23 +96,28 @@ export function playgroundReducer(
   if (action.type === "newIdempotencyKey") {
     return {
       ...state,
-      idempotencyKey: `req_${String(state.keySequence + 1).padStart(3, "0")}`,
+      idempotencyKey: action.value,
       keySequence: state.keySequence + 1,
     };
   }
   if (action.type === "languageChanged") return { ...state, language: action.value };
   if (action.type === "reset") return createInitialState();
   if (action.type === "grant") {
+    const amount = Math.max(1, Math.round(action.value));
     const next =
       state.model === "prepaid"
-        ? { balance: state.balance + 1000 }
-        : { includedRemaining: state.includedRemaining + 1000 };
+        ? { balance: state.balance + amount }
+        : { includedRemaining: state.includedRemaining + amount };
     return {
       ...state,
       ...next,
       result: idleResult,
       sequence: state.sequence + 1,
-      ledger: addEntry(state, { label: "1,000 units granted", amount: 1000, tone: "positive" }),
+      ledger: addEntry(state, {
+        label: `${amount.toLocaleString()} units granted`,
+        amount,
+        tone: "positive",
+      }),
     };
   }
 
@@ -210,10 +215,28 @@ export function requestCode(state: PlaygroundState) {
     return `POST /v1/consume\nAuthorization: Bearer cm_test_••••\nIdempotency-Key: ${values.key}\n\n{\n  "customer_id": "${values.customerId}",\n  "meter_key": "${values.meterKey}",\n  "quantity": ${values.quantity}\n}`;
   }
   if (state.language === "Go") {
-    return `result, err := client.Consume(ctx, consumel.ConsumeParams{\n  CustomerID: "${values.customerId}",\n  MeterKey: "${values.meterKey}",\n  Quantity: ${values.quantity},\n  IdempotencyKey: "${values.key}",\n})`;
+    return `result, err := client.Consume(ctx, consumel.ConsumeParams{\n  CustomerID: "${values.customerId}",\n  MeterKey: "${values.meterKey}",\n  Quantity: ${values.quantity},\n})`;
   }
   if (state.language === "Python") {
-    return `result = consumel.consume(\n    customer_id="${values.customerId}",\n    meter_key="${values.meterKey}",\n    quantity=${values.quantity},\n    idempotency_key="${values.key}",\n)`;
+    return `result = consumel.consume(\n    customer_id="${values.customerId}",\n    meter_key="${values.meterKey}",\n    quantity=${values.quantity},\n)`;
   }
-  return `const result = await consumel.consume({\n  customerId: "${values.customerId}",\n  meterKey: "${values.meterKey}",\n  quantity: ${values.quantity},\n  idempotencyKey: "${values.key}"\n});`;
+  return `const result = await consumel.consume({\n  customerId: "${values.customerId}",\n  meterKey: "${values.meterKey}",\n  quantity: ${values.quantity}\n});`;
+}
+
+export function createUuidV7() {
+  const bytes = crypto.getRandomValues(new Uint8Array(16));
+  let timestamp = Date.now();
+
+  for (let index = 5; index >= 0; index -= 1) {
+    bytes[index] = timestamp % 256;
+    timestamp = Math.floor(timestamp / 256);
+  }
+
+  bytes[6] = (bytes[6] & 0x0f) | 0x70;
+  bytes[8] = (bytes[8] & 0x3f) | 0x80;
+
+  const hex = Array.from(bytes, (byte) => byte.toString(16).padStart(2, "0"));
+  return `${hex.slice(0, 4).join("")}-${hex.slice(4, 6).join("")}-${hex
+    .slice(6, 8)
+    .join("")}-${hex.slice(8, 10).join("")}-${hex.slice(10).join("")}`;
 }
