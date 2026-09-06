@@ -14,6 +14,7 @@ const usageEvents = [
 
 export function HeroParallax() {
   const sceneRef = useRef<HTMLDivElement>(null);
+  const meterRef = useRef<HTMLDivElement>(null);
   const balanceRef = useRef<HTMLElement>(null);
   const periodUsageRef = useRef<HTMLElement>(null);
 
@@ -27,7 +28,9 @@ export function HeroParallax() {
           periodUsageRef.current.textContent = totals.usage.toLocaleString();
       };
 
-      if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+      if (reducedMotion) {
         totals.balance = 2500;
         totals.usage = 500;
         renderTotals();
@@ -36,57 +39,131 @@ export function HeroParallax() {
         return;
       }
 
-      const timeline = gsap.timeline({ repeat: -1, repeatDelay: 1.7 });
-      timeline
+      const meter = meterRef.current;
+      const scene = sceneRef.current;
+
+      if (!meter || !scene) return;
+
+      const usageTimeline = gsap.timeline({ paused: true, repeat: -1 });
+      usageTimeline
         .call(() => {
           totals.balance = 3000;
           totals.usage = 0;
           renderTotals();
         })
-        .set("[data-usage-row]", { opacity: 0, y: 12 })
-        .set("[data-balance-fill]", { scaleX: 1 });
+        .set("[data-usage-row]", {
+          autoAlpha: 0,
+          backgroundColor: "transparent",
+          x: -8,
+        })
+        .set("[data-balance-fill]", { scaleX: 1 })
+        .to({}, { duration: 1.1 });
 
       usageEvents.forEach((event, index) => {
         const usage = usageEvents
           .slice(0, index + 1)
           .reduce((total, item) => total + item.amount, 0);
 
-        timeline
+        usageTimeline
           .to(`[data-usage-row='${index}']`, {
-            opacity: 1,
-            y: 0,
-            duration: 0.5,
-            ease: "power2.out",
+            autoAlpha: 1,
+            x: 0,
+            backgroundColor: "rgba(85, 185, 255, 0.09)",
+            duration: 0.42,
+            ease: "power3.out",
           })
           .to(
             totals,
             {
               balance: event.balance,
               usage,
-              duration: 0.72,
+              duration: 0.86,
               snap: { balance: 1, usage: 1 },
-              ease: "power2.inOut",
+              ease: "power3.inOut",
               onUpdate: renderTotals,
             },
-            "<0.12",
+            "<0.08",
           )
           .to(
             "[data-balance-fill]",
             {
               scaleX: event.balance / 3000,
-              duration: 0.72,
-              ease: "power2.inOut",
+              duration: 0.86,
+              ease: "power3.inOut",
             },
             "<",
+          )
+          .to(
+            `[data-usage-row='${index}']`,
+            { backgroundColor: "transparent", duration: 0.6 },
+            ">-0.18",
           )
           .to({}, { duration: 0.72 });
       });
 
-      timeline.to("[data-usage-row]", {
-        opacity: 0.18,
-        duration: 0.42,
-        stagger: 0.06,
+      usageTimeline.to({}, { duration: 2.1 }).to("[data-usage-row]", {
+        autoAlpha: 0,
+        x: -8,
+        duration: 0.5,
+        stagger: 0.08,
+        ease: "power2.in",
       });
+
+      const introTimeline = gsap.timeline({ onComplete: () => usageTimeline.play(0) });
+      introTimeline.fromTo(
+        meter,
+        { autoAlpha: 0, rotationX: 5, rotationY: -4, scale: 0.975, y: 36 },
+        {
+          autoAlpha: 1,
+          rotationX: 0,
+          rotationY: 0,
+          scale: 1,
+          y: 0,
+          duration: 1.15,
+          ease: "power3.out",
+        },
+      );
+
+      const supportsPointer = window.matchMedia("(pointer: fine)").matches;
+      if (!supportsPointer) return;
+
+      const handlePointerMove = (event: PointerEvent) => {
+        const bounds = scene.getBoundingClientRect();
+        const x = (event.clientX - bounds.left) / bounds.width - 0.5;
+        const y = (event.clientY - bounds.top) / bounds.height - 0.5;
+
+        gsap.to(meter, {
+          rotationX: y * -3,
+          rotationY: x * 4,
+          x: x * 10,
+          y: y * 7,
+          duration: 0.65,
+          ease: "power3.out",
+          overwrite: "auto",
+        });
+      };
+
+      const resetParallax = () => {
+        gsap.to(meter, {
+          rotationX: 0,
+          rotationY: 0,
+          x: 0,
+          y: 0,
+          duration: 0.65,
+          ease: "power3.out",
+          overwrite: "auto",
+        });
+      };
+
+      scene.addEventListener("pointermove", handlePointerMove);
+      scene.addEventListener("pointerleave", resetParallax);
+
+      return () => {
+        scene.removeEventListener("pointermove", handlePointerMove);
+        scene.removeEventListener("pointerleave", resetParallax);
+        introTimeline.kill();
+        usageTimeline.kill();
+      };
     },
     { scope: sceneRef },
   );
@@ -95,14 +172,12 @@ export function HeroParallax() {
     <div className="hero-scene" ref={sceneRef}>
       <div
         className="customer-meter"
+        ref={meterRef}
         role="img"
-        aria-label="A customer meter showing three accepted AI token usage events. The available balance decreases from 3,000 to 2,500 units while usage this period increases to 500 units."
+        aria-label="A customer's AI token meter showing three usage events. The available balance decreases from 3,000 to 2,500 units while usage this period increases to 500 units."
       >
         <header className="customer-meter__header">
-          <span>
-            <small>Customer</small>
-            <strong>Customer #1842</strong>
-          </span>
+          <strong>Customer #1842</strong>
           <span>
             <small>Meter</small>
             <strong>AI tokens</strong>

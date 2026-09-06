@@ -1,40 +1,28 @@
-import { SoftAurora } from "@/components/react-bits/soft-aurora";
+import Script from "next/script";
 import { HeroParallax } from "./hero-parallax";
 import { SiteHeader } from "./site-header";
+import { waitlistPopupAttributes, waitlistPopupHref } from "./waitlist-popup";
 
 export function LandingPage() {
   return (
     <div className="marketing-site">
       <div className="blue-field" id="product">
         <SiteHeader />
-        <div className="hero-aurora" aria-hidden="true">
-          <SoftAurora
-            speed={0.24}
-            scale={1.15}
-            brightness={1.05}
-            color1="#a4e1ff"
-            color2="#1267c4"
-            noiseFrequency={1.6}
-            noiseAmplitude={0.65}
-            bandHeight={0.48}
-            bandSpread={1.05}
-            octaveDecay={0.18}
-            layerOffset={0.8}
-            colorSpeed={0.25}
-            mouseInfluence={0.06}
-          />
-        </div>
         <main>
           <section className="hero">
             <div className="page-shell hero__layout">
               <div className="hero__copy">
-                <h1>Usage-based billing, built into your product.</h1>
+                <h1>Usage-based billing, built for your product.</h1>
                 <p className="hero__summary">
-                  Send one consume request. Consumel records the usage, updates the customer’s
-                  balance or allowance, and connects it to your billing provider.
+                  Each time a customer uses your product, Consumel records the usage, updates
+                  their balance or allowance, and connects usage to your billing provider.
                 </p>
                 <div className="hero__actions">
-                  <a className="hero-action hero-action--primary" href="#waitlist">
+                  <a
+                    className="hero-action hero-action--primary"
+                    href={waitlistPopupHref}
+                    {...waitlistPopupAttributes}
+                  >
                     Join the waitlist
                   </a>
                   <a className="hero-action hero-action--secondary" href="#playground">
@@ -47,6 +35,7 @@ export function LandingPage() {
           </section>
         </main>
       </div>
+      <Script src="https://tally.so/widgets/embed.js" strategy="lazyOnload" />
     </div>
   );
 }

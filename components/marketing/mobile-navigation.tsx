@@ -2,6 +2,7 @@
 
 import { LinkedinLogoIcon, ListIcon, XIcon, XLogoIcon } from "@phosphor-icons/react";
 import { Dialog } from "radix-ui";
+import { waitlistPopupAttributes, waitlistPopupHref } from "./waitlist-popup";
 
 type NavigationItem = {
   label: string;
@@ -41,7 +42,11 @@ export function MobileNavigation({ items }: MobileNavigationProps) {
           </nav>
 
           <Dialog.Close asChild>
-            <a className="mobile-nav__waitlist" href="#waitlist">
+            <a
+              className="mobile-nav__waitlist"
+              href={waitlistPopupHref}
+              {...waitlistPopupAttributes}
+            >
               Join the waitlist
             </a>
           </Dialog.Close>

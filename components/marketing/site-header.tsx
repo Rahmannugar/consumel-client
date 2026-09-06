@@ -1,5 +1,6 @@
 import { Brand } from "./brand";
 import { MobileNavigation } from "./mobile-navigation";
+import { waitlistPopupAttributes, waitlistPopupHref } from "./waitlist-popup";
 
 const navigation = [
   { label: "Product", href: "#product" },
@@ -21,7 +22,7 @@ export function SiteHeader() {
             </a>
           ))}
         </nav>
-        <a className="nav-action" href="#waitlist">
+        <a className="nav-action" href={waitlistPopupHref} {...waitlistPopupAttributes}>
           Join the waitlist
         </a>
         <MobileNavigation items={navigation} />

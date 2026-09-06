@@ -27,6 +27,7 @@ export type PlaygroundState = {
   ledger: LedgerEntry[];
   processed: Record<string, ProcessedRequest>;
   sequence: number;
+  keySequence: number;
 };
 
 export type PlaygroundAction =
@@ -35,12 +36,13 @@ export type PlaygroundAction =
   | { type: "meterChanged"; value: string }
   | { type: "quantityChanged"; value: number }
   | { type: "idempotencyChanged"; value: string }
+  | { type: "newIdempotencyKey" }
   | { type: "languageChanged"; value: Language }
   | { type: "consume" }
   | { type: "grant" }
   | { type: "reset" };
 
-const idleResult: Result = { status: "idle", message: "Ready for a consume request" };
+const idleResult: Result = { status: "idle", message: "Run consume to see the result." };
 
 function customerContext(model: BillingModel) {
   return {
@@ -53,16 +55,17 @@ function customerContext(model: BillingModel) {
     ledger: [] as LedgerEntry[],
     processed: {} as Record<string, ProcessedRequest>,
     sequence: 0,
+    idempotencyKey: "req_001",
+    keySequence: 1,
   };
 }
 
 export function createInitialState(): PlaygroundState {
   return {
     model: "prepaid",
-    customerId: "cus_ada",
+    customerId: "customer_1842",
     meterKey: "ai_tokens",
     quantity: 500,
-    idempotencyKey: "req_001",
     language: "Node.js",
     ...customerContext("prepaid"),
   };
@@ -82,9 +85,21 @@ export function playgroundReducer(
   if (action.type === "modelChanged") {
     return { ...state, model: action.value, ...customerContext(action.value) };
   }
-  if (action.type === "meterChanged") return { ...state, meterKey: action.value };
-  if (action.type === "quantityChanged") return { ...state, quantity: action.value };
+  if (action.type === "meterChanged") {
+    return { ...state, meterKey: action.value, ...customerContext(state.model) };
+  }
+  if (action.type === "quantityChanged") {
+    const quantity = Math.max(1, Math.min(5000, Math.round(action.value || 1)));
+    return { ...state, quantity };
+  }
   if (action.type === "idempotencyChanged") return { ...state, idempotencyKey: action.value };
+  if (action.type === "newIdempotencyKey") {
+    return {
+      ...state,
+      idempotencyKey: `req_${String(state.keySequence + 1).padStart(3, "0")}`,
+      keySequence: state.keySequence + 1,
+    };
+  }
   if (action.type === "languageChanged") return { ...state, language: action.value };
   if (action.type === "reset") return createInitialState();
   if (action.type === "grant") {
@@ -120,11 +135,22 @@ export function playgroundReducer(
   }
 
   const denied = state.model === "prepaid" && quantity > state.balance;
+  const includedUsed = Math.min(state.includedRemaining, quantity);
+  const overageAdded = quantity - includedUsed;
   const result: Result = denied
-    ? { status: "denied", message: "Insufficient balance", remaining: state.balance }
+    ? {
+        status: "denied",
+        message: "This request exceeds the available balance.",
+        remaining: state.balance,
+      }
     : {
         status: "allowed",
-        message: "Usage accepted and state updated",
+        message:
+          state.model === "postpaid"
+            ? `${quantity.toLocaleString()} units added to this period.`
+            : state.model === "hybrid"
+              ? hybridResultMessage(includedUsed, overageAdded)
+              : `${quantity.toLocaleString()} units consumed.`,
         remaining:
           state.model === "prepaid"
             ? state.balance - quantity
@@ -145,7 +171,6 @@ export function playgroundReducer(
     };
   }
 
-  const includedUsed = Math.min(state.includedRemaining, quantity);
   return {
     ...state,
     quantity,
@@ -166,6 +191,12 @@ export function playgroundReducer(
       tone: "neutral",
     }),
   };
+}
+
+function hybridResultMessage(includedUsed: number, overageAdded: number) {
+  if (overageAdded === 0) return `${includedUsed.toLocaleString()} included units consumed.`;
+  if (includedUsed === 0) return `${overageAdded.toLocaleString()} overage units recorded.`;
+  return `${includedUsed.toLocaleString()} included units and ${overageAdded.toLocaleString()} overage units recorded.`;
 }
 
 export function requestCode(state: PlaygroundState) {
