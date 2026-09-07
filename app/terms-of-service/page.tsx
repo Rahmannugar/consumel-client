@@ -4,7 +4,7 @@ import { LegalPage } from "@/components/legal/legal-page";
 export const metadata: Metadata = {
   title: "Terms of Service",
   description: "Terms governing use of the Consumel website and pre-release program.",
-  alternates: { canonical: "/terms" },
+  alternates: { canonical: "/terms-of-service" },
 };
 
 export default function TermsPage() {

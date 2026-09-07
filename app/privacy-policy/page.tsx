@@ -4,7 +4,7 @@ import { LegalPage } from "@/components/legal/legal-page";
 export const metadata: Metadata = {
   title: "Privacy Policy",
   description: "How Consumel handles information collected through its website and waitlist.",
-  alternates: { canonical: "/privacy" },
+  alternates: { canonical: "/privacy-policy" },
 };
 
 export default function PrivacyPage() {
