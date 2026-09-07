@@ -19,6 +19,7 @@ import {
   type BillingModel,
   createInitialState,
   createUuidV7,
+  formatUnits,
   type Language,
   playgroundReducer,
   requestCode,
@@ -40,7 +41,7 @@ const meters = [
 
 function Code({ value }: { value: string }) {
   const parts = value.split(
-    /("(?:[^"\\]|\\.)*"|\b(?:const|await|result|err|POST|Bearer)\b|\b\d+\b)/g,
+    /("(?:[^"\\]|\\.)*"|\b(?:const|await|result|err|POST|Bearer)\b|\b\d+(?:\.\d+)?\b)/g,
   );
   let offset = 0;
 
@@ -54,7 +55,7 @@ function Code({ value }: { value: string }) {
         className={
           part.startsWith('"')
             ? styles.string
-            : /^\d+$/.test(part)
+            : /^\d+(?:\.\d+)?$/.test(part)
               ? styles.number
               : /^(const|await|POST|Bearer)$/.test(part)
                 ? styles.keyword
@@ -87,8 +88,9 @@ export function UsagePlayground() {
         : "Included allowance left";
   const quantity = Number(quantityInput);
   const balanceAmount = Number(balanceInput);
-  const validQuantity = quantityInput !== "" && quantity >= 1 && quantity <= 5000;
-  const validBalance = balanceInput !== "" && balanceAmount >= 0;
+  const validQuantity = quantityInput !== "" && Number.isFinite(quantity) && quantity > 0;
+  const validBalance =
+    balanceInput !== "" && Number.isFinite(balanceAmount) && balanceAmount > 0;
   const code = requestCode(state);
 
   function consume() {
@@ -99,7 +101,7 @@ export function UsagePlayground() {
   }
 
   function addBalance() {
-    if (!validBalance || balanceAmount < 1) return;
+    if (!validBalance) return;
     dispatch({ type: "grant", value: balanceAmount });
   }
 
@@ -247,12 +249,12 @@ export function UsagePlayground() {
                 <span>{label}</span>
                 <span>{meters.find((meter) => meter.key === state.meterKey)?.name}</span>
               </div>
-              <strong className={styles.balance}>{value.toLocaleString("en-US")}</strong>
+              <strong className={styles.balance}>{formatUnits(value)}</strong>
               {state.model === "hybrid" && (
                 <div className={styles.hybridMetrics}>
                   <div>
                     <span>Overage units</span>
-                    <strong>{state.overage.toLocaleString("en-US")}</strong>
+                    <strong>{formatUnits(state.overage)}</strong>
                   </div>
                 </div>
               )}
@@ -273,15 +275,19 @@ export function UsagePlayground() {
                   <Input
                     id="demo-quantity"
                     type="number"
-                    min={1}
-                    max={5000}
+                    min={0}
+                    step="any"
                     value={quantityInput}
                     aria-invalid={quantityInput !== "" && !validQuantity}
                     onChange={(event) => {
                       const nextValue = event.target.value;
                       setQuantityInput(nextValue);
                       const nextQuantity = Number(nextValue);
-                      if (nextValue !== "" && nextQuantity >= 1 && nextQuantity <= 5000) {
+                      if (
+                        nextValue !== "" &&
+                        Number.isFinite(nextQuantity) &&
+                        nextQuantity > 0
+                      ) {
                         dispatch({ type: "quantityChanged", value: nextQuantity });
                       }
                     }}
@@ -303,15 +309,12 @@ export function UsagePlayground() {
                       id="demo-balance"
                       type="number"
                       min={0}
+                      step="any"
                       value={balanceInput}
                       aria-invalid={balanceInput !== "" && !validBalance}
                       onChange={(event) => setBalanceInput(event.target.value)}
                     />
-                    <Button
-                      variant="secondary"
-                      disabled={!validBalance || balanceAmount < 1}
-                      onClick={addBalance}
-                    >
+                    <Button variant="secondary" disabled={!validBalance} onClick={addBalance}>
                       Add
                     </Button>
                   </div>

@@ -166,7 +166,7 @@ export function ProductFlow() {
         ))}
       </div>
 
-      <div className="page-shell mt-20 border-t border-[#cbd7df] pt-16 max-[820px]:mt-14 max-[820px]:pt-12">
+      <div className="page-shell mt-20 border-t border-[#cbd7df] pt-16 max-[820px]:mt-14 max-[820px]:border-t-0 max-[820px]:pt-12">
         <header className="grid grid-cols-[minmax(0,1fr)_minmax(280px,0.72fr)] items-end gap-12 max-[760px]:grid-cols-1 max-[760px]:gap-5">
           <h3 className="m-0 max-w-[660px] [font-family:var(--font-bricolage-grotesque)] text-[clamp(34px,3.7vw,48px)] leading-none font-bold tracking-[-0.04em]">
             Choose how usage is billed.
@@ -177,17 +177,17 @@ export function ProductFlow() {
           </p>
         </header>
 
-        <div className="mt-10 grid overflow-hidden rounded-2xl border border-[#cbd7df] bg-white shadow-[0_18px_45px_rgb(14_38_57/6%)] lg:grid-cols-[0.68fr_1.32fr]">
-          <div className="grid border-b border-[#dce5eb] bg-[#f2f6f8] p-3 sm:grid-cols-2 lg:grid-cols-1 lg:border-r lg:border-b-0">
+        <div className="mt-10 grid overflow-hidden rounded-2xl border border-[#cbd7df] bg-[#edf3f6] shadow-[0_16px_40px_rgb(14_38_57/5%)] lg:grid-cols-[0.58fr_1.42fr]">
+          <div className="grid content-center gap-1 border-b border-[#d4e0e7] p-3 sm:grid-cols-2 lg:grid-cols-1 lg:border-r lg:border-b-0 lg:p-4">
             {billingCapabilities.map((capability) => {
               const active = capability.id === activeCapability.id;
 
               return (
                 <Button
-                  className={`!min-h-[62px] !justify-start !rounded-lg !border-transparent !px-4 !text-left !text-[14px] ${
+                  className={`!min-h-12 !justify-start !rounded-md !border-transparent !px-3.5 !text-left !text-[13px] ${
                     active
-                      ? "!bg-white !text-[#075aaf] shadow-[0_3px_12px_rgb(13_51_77/8%)]"
-                      : "!bg-transparent !text-[#536774] hover:!bg-white/65 hover:!text-[#172f3e]"
+                      ? "!bg-[#dceefe] !text-[#075aaf] shadow-none before:mr-1 before:h-4 before:w-0.5 before:rounded-full before:bg-[#087cec]"
+                      : "!bg-transparent !text-[#536774] hover:!bg-white/55 hover:!text-[#172f3e]"
                   }`}
                   key={capability.id}
                   onClick={() => setActiveCapabilityId(capability.id)}
@@ -201,7 +201,7 @@ export function ProductFlow() {
             })}
           </div>
 
-          <div className="flex min-h-[330px] flex-col justify-between bg-[#071827] p-[clamp(24px,4vw,48px)] text-white">
+          <div className="flex min-h-[280px] flex-col justify-between bg-[#071827] p-[clamp(24px,3.5vw,42px)] text-white">
             <div>
               <p className="m-0 font-mono text-[11px] font-bold tracking-[0.08em] text-[#70c2ff] uppercase">
                 {activeCapability.title}
@@ -211,10 +211,10 @@ export function ProductFlow() {
               </p>
             </div>
 
-            <div className="mt-12 grid grid-cols-[1fr_auto_1fr_auto_1fr] items-center gap-3 max-[620px]:grid-cols-1 max-[620px]:gap-2.5">
+            <div className="mt-9 grid grid-cols-[1fr_auto_1fr_auto_1fr] items-center gap-3 max-[620px]:grid-cols-1 max-[620px]:gap-2">
               {activeCapability.stages.map((stage, index) => (
                 <div className="contents" key={stage}>
-                  <div className="flex min-h-[76px] items-center rounded-lg border border-white/15 bg-white/[0.06] px-4 text-sm font-semibold">
+                  <div className="flex min-h-14 items-center rounded-md border border-white/12 bg-white/[0.045] px-3.5 text-[13px] font-semibold">
                     {stage}
                   </div>
                   {index < activeCapability.stages.length - 1 && (

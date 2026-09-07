@@ -4,9 +4,9 @@ import { LinkedinLogoIcon, XLogoIcon } from "@phosphor-icons/react";
 
 export function FooterSocialLinks() {
   return (
-    <div className="mt-4 flex gap-2.5">
+    <div className="mt-4 flex gap-4">
       <a
-        className="grid size-10 place-items-center rounded-lg border border-white/15 text-[#b8c8d2] transition-colors hover:border-white/30 hover:text-white"
+        className="grid size-8 place-items-center rounded-full text-[#b8c8d2] transition-colors hover:bg-white/8 hover:text-white"
         href="https://www.linkedin.com/company/consumel/"
         target="_blank"
         rel="noreferrer"
@@ -15,7 +15,7 @@ export function FooterSocialLinks() {
         <LinkedinLogoIcon className="size-5" weight="fill" aria-hidden="true" />
       </a>
       <a
-        className="grid size-10 place-items-center rounded-lg border border-white/15 text-[#b8c8d2] transition-colors hover:border-white/30 hover:text-white"
+        className="grid size-8 place-items-center rounded-full text-[#b8c8d2] transition-colors hover:bg-white/8 hover:text-white"
         href="https://x.com/consumelcom"
         target="_blank"
         rel="noreferrer"

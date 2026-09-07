@@ -2,19 +2,29 @@ import Link from "next/link";
 import { Brand } from "./brand";
 import { FooterSocialLinks } from "./footer-social-links";
 
-const productLinks = [
-  { label: "How it works", href: "#how-it-works" },
-  { label: "Playground", href: "#playground" },
-  { label: "Providers", href: "#providers" },
-  { label: "Pricing", href: "#pricing" },
-  { label: "FAQ", href: "#faq" },
+const linkGroups = [
+  {
+    label: "Product",
+    links: [
+      { label: "How it works", href: "#how-it-works" },
+      { label: "Providers", href: "#providers" },
+      { label: "Pricing", href: "#pricing" },
+    ],
+  },
+  {
+    label: "Resources",
+    links: [
+      { label: "Playground", href: "#playground" },
+      { label: "FAQ", href: "#faq" },
+    ],
+  },
 ] as const;
 
 export function SiteFooter() {
   return (
     <footer className="bg-[#06131f] py-12 text-white max-[620px]:py-10">
       <div className="page-shell">
-        <div className="grid grid-cols-[minmax(240px,1.1fr)_minmax(310px,0.9fr)_auto] gap-12 max-[820px]:grid-cols-2 max-[820px]:gap-10">
+        <div className="grid grid-cols-[minmax(240px,1.1fr)_minmax(340px,0.9fr)_auto] gap-12 max-[820px]:grid-cols-[1fr_auto] max-[820px]:gap-10 max-[480px]:gap-x-7">
           <div className="max-[820px]:col-span-2">
             <Brand inverse />
             <p className="mt-3 mb-0 max-w-[330px] text-sm leading-6 text-[#9fb1bf]">
@@ -22,27 +32,36 @@ export function SiteFooter() {
             </p>
           </div>
 
-          <nav aria-label="Product links">
+          <nav aria-label="Explore Consumel">
             <h2 className="m-0 text-xs font-bold tracking-[0.08em] text-[#7f95a5] uppercase">
               Explore
             </h2>
-            <ul className="mt-4 grid list-none grid-cols-2 gap-x-8 gap-y-3 p-0">
-              {productLinks.map((item) => (
-                <li key={item.href}>
-                  <a
-                    className="text-sm text-[#c5d1d9] no-underline hover:text-white"
-                    href={item.href}
-                  >
-                    {item.label}
-                  </a>
-                </li>
+            <div className="mt-4 grid grid-cols-[max-content_max-content] gap-x-10 max-[480px]:gap-x-7">
+              {linkGroups.map((group) => (
+                <div key={group.label}>
+                  <h3 className="m-0 text-[10px] font-bold tracking-[0.08em] text-[#6f8595] uppercase">
+                    {group.label}
+                  </h3>
+                  <ul className="mt-3 grid list-none gap-y-3 p-0">
+                    {group.links.map((item) => (
+                      <li key={item.href}>
+                        <a
+                          className="whitespace-nowrap text-sm text-[#c5d1d9] no-underline hover:text-white"
+                          href={item.href}
+                        >
+                          {item.label}
+                        </a>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
               ))}
-            </ul>
+            </div>
           </nav>
 
           <nav aria-label="Consumel on social media">
             <h2 className="m-0 text-xs font-bold tracking-[0.08em] text-[#7f95a5] uppercase">
-              Follow
+              Socials
             </h2>
             <FooterSocialLinks />
           </nav>

@@ -43,6 +43,11 @@ export type PlaygroundAction =
   | { type: "reset" };
 
 const idleResult: Result = { status: "idle", message: "Run consume to see the result." };
+const unitFormatter = new Intl.NumberFormat("en-US", { maximumFractionDigits: 8 });
+
+export function formatUnits(value: number) {
+  return unitFormatter.format(value);
+}
 
 function customerContext(model: BillingModel) {
   return {
@@ -89,8 +94,9 @@ export function playgroundReducer(
     return { ...state, meterKey: action.value, ...customerContext(state.model) };
   }
   if (action.type === "quantityChanged") {
-    const quantity = Math.max(1, Math.min(5000, Math.round(action.value || 1)));
-    return { ...state, quantity };
+    return Number.isFinite(action.value) && action.value > 0
+      ? { ...state, quantity: action.value }
+      : state;
   }
   if (action.type === "idempotencyChanged") return { ...state, idempotencyKey: action.value };
   if (action.type === "newIdempotencyKey") {
@@ -103,7 +109,8 @@ export function playgroundReducer(
   if (action.type === "languageChanged") return { ...state, language: action.value };
   if (action.type === "reset") return createInitialState();
   if (action.type === "grant") {
-    const amount = Math.max(1, Math.round(action.value));
+    if (!Number.isFinite(action.value) || action.value <= 0) return state;
+    const amount = action.value;
     const next =
       state.model === "prepaid"
         ? { balance: state.balance + amount }
@@ -114,13 +121,13 @@ export function playgroundReducer(
       result: idleResult,
       sequence: state.sequence + 1,
       ledger: addEntry(state, {
-        label: `${amount.toLocaleString()} units granted`,
+        label: `${formatUnits(amount)} units granted`,
         amount,
         tone: "positive",
       }),
     };
   }
-  const quantity = Math.max(1, Math.min(5000, Math.round(state.quantity || 1)));
+  const quantity = state.quantity;
   const signature = `${state.customerId}|${state.meterKey}|${quantity}|${state.model}`;
   const prior = state.processed[state.idempotencyKey];
   if (prior?.signature === signature) {
@@ -151,10 +158,10 @@ export function playgroundReducer(
         status: "allowed",
         message:
           state.model === "postpaid"
-            ? `${quantity.toLocaleString()} units added to this period.`
+            ? `${formatUnits(quantity)} units added to this period.`
             : state.model === "hybrid"
               ? hybridResultMessage(includedUsed, overageAdded)
-              : `${quantity.toLocaleString()} units consumed.`,
+              : `${formatUnits(quantity)} units consumed.`,
         remaining:
           state.model === "prepaid"
             ? state.balance - quantity
@@ -198,9 +205,9 @@ export function playgroundReducer(
 }
 
 function hybridResultMessage(includedUsed: number, overageAdded: number) {
-  if (overageAdded === 0) return `${includedUsed.toLocaleString()} included units consumed.`;
-  if (includedUsed === 0) return `${overageAdded.toLocaleString()} overage units recorded.`;
-  return `${includedUsed.toLocaleString()} included units and ${overageAdded.toLocaleString()} overage units recorded.`;
+  if (overageAdded === 0) return `${formatUnits(includedUsed)} included units consumed.`;
+  if (includedUsed === 0) return `${formatUnits(overageAdded)} overage units recorded.`;
+  return `${formatUnits(includedUsed)} included units and ${formatUnits(overageAdded)} overage units recorded.`;
 }
 
 export function requestCode(state: PlaygroundState) {
