@@ -1,36 +1,56 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Consumel Client
 
-## Getting Started
+Consumel is an infrastructure for usage-based billing. It helps SaaS companies
+meter usage, manage customer balances and entitlements, apply pricing rules,
+and connect usage data to the payment providers they already use.
 
-First, run the development server:
+This repository contains `consumel.com`, including the public website and the
+customer-facing web application.
+
+## Technology
+
+- Next.js 16 and React 19
+- TypeScript
+- Tailwind CSS 4
+- Motion and GSAP
+- Biome
+- Bun 1.4
+
+## Local Development
+
+Install the Bun version declared in `package.json`, then install the locked
+dependencies:
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+bun install --frozen-lockfile
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Start the development server:
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+bun run dev
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Open [http://localhost:3000](http://localhost:3000).
 
-## Learn More
+## Validation
 
-To learn more about Next.js, take a look at the following resources:
+Run formatting, lint, and TypeScript checks:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```bash
+bun run check
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Build the production application:
 
-## Deploy on Vercel
+```bash
+bun run build --webpack
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Contact
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+[Book a 30-minute meeting with the Consumel team](https://cal.com/rahmannugar/30min).
+
+## License
+
+Licensed under the [Apache License 2.0](LICENSE).
