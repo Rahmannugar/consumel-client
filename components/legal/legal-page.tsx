@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
-import { Brand } from "@/components/marketing/brand";
+import { SiteFooter } from "@/components/marketing/site-footer";
+import { SiteHeader } from "@/components/marketing/site-header";
 
 type LegalPageProps = {
   title: string;
@@ -10,24 +11,17 @@ type LegalPageProps = {
 export function LegalPage({ title, description, children }: LegalPageProps) {
   return (
     <div className="legal-page">
-      <header className="legal-header">
-        <div className="shell legal-header__inner">
-          <Brand />
-          <a href="/">Back to home</a>
-        </div>
-      </header>
-      <main className="shell legal-layout">
-        <aside>
-          <p className="eyebrow">Legal</p>
+      <SiteHeader sectionHrefPrefix="/" />
+      <main className="page-shell legal-layout">
+        <aside className="legal-intro">
+          <p className="legal-eyebrow">Legal</p>
           <h1>{title}</h1>
           <p>{description}</p>
-          <span>Effective September 6, 2026</span>
+          <span className="legal-effective-date">Effective September 7, 2026</span>
         </aside>
         <article className="legal-content">{children}</article>
       </main>
-      <footer className="legal-footer">
-        <div className="shell">© 2026 Consumel.</div>
-      </footer>
+      <SiteFooter sectionHrefPrefix="/" />
     </div>
   );
 }

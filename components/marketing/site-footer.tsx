@@ -13,14 +13,20 @@ const resourceLinks = [
   { label: "FAQ", href: "#faq" },
 ] as const;
 
-function FooterLinks({ links }: { links: readonly { label: string; href: string }[] }) {
+function FooterLinks({
+  links,
+  sectionHrefPrefix,
+}: {
+  links: readonly { label: string; href: string }[];
+  sectionHrefPrefix: "" | "/";
+}) {
   return (
     <ul className="mt-4 grid list-none gap-y-3 p-0">
       {links.map((item) => (
         <li key={item.href}>
           <a
             className="whitespace-nowrap text-sm text-[#c5d1d9] no-underline hover:text-white"
-            href={item.href}
+            href={`${sectionHrefPrefix}${item.href}`}
           >
             {item.label}
           </a>
@@ -30,7 +36,11 @@ function FooterLinks({ links }: { links: readonly { label: string; href: string 
   );
 }
 
-export function SiteFooter() {
+type SiteFooterProps = {
+  sectionHrefPrefix?: "" | "/";
+};
+
+export function SiteFooter({ sectionHrefPrefix = "" }: SiteFooterProps) {
   return (
     <footer className="bg-[#06131f] py-12 text-white max-[620px]:py-10">
       <div className="page-shell">
@@ -46,14 +56,14 @@ export function SiteFooter() {
             <h2 className="m-0 text-xs font-bold tracking-[0.08em] text-[#7f95a5] uppercase">
               Product
             </h2>
-            <FooterLinks links={productLinks} />
+            <FooterLinks links={productLinks} sectionHrefPrefix={sectionHrefPrefix} />
           </nav>
 
           <nav aria-label="Resources">
             <h2 className="m-0 text-xs font-bold tracking-[0.08em] text-[#7f95a5] uppercase">
               Resources
             </h2>
-            <FooterLinks links={resourceLinks} />
+            <FooterLinks links={resourceLinks} sectionHrefPrefix={sectionHrefPrefix} />
           </nav>
 
           <nav className="max-[820px]:col-span-2" aria-label="Consumel on social media">
