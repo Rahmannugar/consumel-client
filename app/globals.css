@@ -46,6 +46,12 @@ a:focus-visible {
   color: inherit;
 }
 
+.not-found-page::selection,
+.not-found-page *::selection {
+  background: white;
+  color: var(--blue-dark);
+}
+
 .page-shell {
   width: min(1210px, calc(100% - 48px));
   margin-inline: auto;

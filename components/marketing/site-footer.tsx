@@ -77,10 +77,16 @@ export function SiteFooter({ sectionHrefPrefix = "" }: SiteFooterProps) {
         <div className="mt-10 flex items-center justify-between gap-6 border-t border-white/12 pt-5 text-xs text-[#7f95a5] max-[560px]:items-start max-[560px]:flex-col-reverse">
           <p className="m-0">© 2026 Consumel.</p>
           <div className="flex gap-5">
-            <Link className="text-[#aebdc7] no-underline hover:text-white" href="/privacy">
+            <Link
+              className="text-[#aebdc7] no-underline hover:text-white"
+              href="/privacy-policy"
+            >
               Privacy Policy
             </Link>
-            <Link className="text-[#aebdc7] no-underline hover:text-white" href="/terms">
+            <Link
+              className="text-[#aebdc7] no-underline hover:text-white"
+              href="/terms-of-service"
+            >
               Terms of Service
             </Link>
           </div>
