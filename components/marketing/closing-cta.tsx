@@ -6,11 +6,11 @@ export function ClosingCta() {
   return (
     <section className="bg-[#087cec] py-20 text-white max-[620px]:py-16">
       <div className="page-shell grid grid-cols-[minmax(0,1fr)_auto] items-center gap-12 max-[760px]:grid-cols-1 max-[760px]:items-start max-[760px]:gap-8">
-        <div className="max-[760px]:text-center">
-          <h2 className="m-0 max-w-[800px] [font-family:var(--font-bricolage-grotesque)] text-[clamp(38px,4.4vw,58px)] leading-[0.96] font-bold tracking-[-0.05em] max-[760px]:mx-auto">
+        <div>
+          <h2 className="m-0 max-w-[800px] [font-family:var(--font-bricolage-grotesque)] text-[clamp(38px,4.4vw,58px)] leading-[0.96] font-bold tracking-[-0.05em]">
             Build your usage-based billing with Consumel.
           </h2>
-          <p className="mt-6 mb-0 max-w-[620px] text-base leading-7 text-white/80 max-[760px]:mx-auto">
+          <p className="mt-6 mb-0 max-w-[620px] text-base leading-7 text-white/80">
             Join the waitlist or book a 30-minute call about your product&apos;s billing model.
           </p>
         </div>

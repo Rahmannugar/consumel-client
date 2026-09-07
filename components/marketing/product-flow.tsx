@@ -1,7 +1,15 @@
 "use client";
 
+import { AnimatePresence, motion } from "motion/react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { ScrollStack, ScrollStackItem } from "../react-bits/scroll-stack";
 
 const flowSteps = [
@@ -29,25 +37,49 @@ const billingCapabilities = [
     id: "prepaid",
     title: "Prepaid credits",
     body: "Add a balance, deduct usage, and reject consumption when the balance is exhausted.",
-    stages: ["Payment received", "Balance added", "Usage consumed"],
+    metric: "2,500",
+    metricLabel: "Available balance",
+    stages: [
+      { label: "Balance funded", value: "+3,000 units" },
+      { label: "Usage requested", value: "500 units" },
+      { label: "Balance deducted", value: "2,500 remaining" },
+    ],
   },
   {
     id: "recurring",
     title: "Recurring allowances",
     body: "Grant usage that resets on the schedule your product defines.",
-    stages: ["Schedule reached", "Allowance granted", "Balance resets"],
+    metric: "2,500",
+    metricLabel: "Allowance remaining",
+    stages: [
+      { label: "Period started", value: "Monthly" },
+      { label: "Allowance reset", value: "+3,000 units" },
+      { label: "Usage deducted", value: "2,500 remaining" },
+    ],
   },
   {
     id: "postpaid",
     title: "Postpaid usage",
     body: "Record consumption during the billing period and calculate the amount owed afterward.",
-    stages: ["Usage consumed", "Period usage tracked", "Amount calculated"],
+    metric: "14,500",
+    metricLabel: "Usage this period",
+    stages: [
+      { label: "Usage recorded", value: "+500 units" },
+      { label: "Period total updated", value: "14,500 units" },
+      { label: "Amount calculated", value: "At period end" },
+    ],
   },
   {
     id: "hybrid",
     title: "Included usage + overage",
     body: "Consume the included allowance first, then track excess usage for billing.",
-    stages: ["Allowance included", "Usage consumed", "Overage tracked"],
+    metric: "500",
+    metricLabel: "Overage units",
+    stages: [
+      { label: "Allowance checked", value: "3,000 available" },
+      { label: "Usage deducted", value: "3,500 units" },
+      { label: "Overage recorded", value: "500 units" },
+    ],
   },
 ] as const;
 
@@ -177,56 +209,102 @@ export function ProductFlow() {
           </p>
         </header>
 
-        <div className="mt-10 grid overflow-hidden rounded-2xl border border-[#cbd7df] bg-[#edf3f6] shadow-[0_16px_40px_rgb(14_38_57/5%)] lg:grid-cols-[0.58fr_1.42fr]">
-          <div className="grid content-center gap-1 border-b border-[#d4e0e7] p-3 sm:grid-cols-2 lg:grid-cols-1 lg:border-r lg:border-b-0 lg:p-4">
-            {billingCapabilities.map((capability) => {
-              const active = capability.id === activeCapability.id;
+        <div className="mt-10 overflow-hidden rounded-2xl border border-[#cbd7df] bg-white shadow-[0_16px_40px_rgb(14_38_57/5%)]">
+          <div className="flex min-h-[68px] items-center justify-between gap-6 border-b border-[#d7e1e7] px-5 max-[760px]:p-3.5">
+            <p className="m-0 text-xs font-semibold text-[#748996] max-[760px]:hidden">
+              Billing model
+            </p>
 
-              return (
-                <Button
-                  className={`!min-h-12 !justify-start !rounded-md !border-transparent !px-3.5 !text-left !text-[13px] ${
-                    active
-                      ? "!bg-[#dceefe] !text-[#075aaf] shadow-none before:mr-1 before:h-4 before:w-0.5 before:rounded-full before:bg-[#087cec]"
-                      : "!bg-transparent !text-[#536774] hover:!bg-white/55 hover:!text-[#172f3e]"
-                  }`}
-                  key={capability.id}
-                  onClick={() => setActiveCapabilityId(capability.id)}
-                  type="button"
-                  variant="quiet"
-                  aria-pressed={active}
-                >
-                  {capability.title}
-                </Button>
-              );
-            })}
-          </div>
+            <div className="flex gap-1 rounded-lg bg-[#edf2f5] p-1 max-[760px]:hidden">
+              {billingCapabilities.map((capability) => {
+                const active = capability.id === activeCapability.id;
 
-          <div className="flex min-h-[280px] flex-col justify-between bg-[#071827] p-[clamp(24px,3.5vw,42px)] text-white">
-            <div>
-              <p className="m-0 font-mono text-[11px] font-bold tracking-[0.08em] text-[#70c2ff] uppercase">
-                {activeCapability.title}
-              </p>
-              <p className="mt-4 mb-0 max-w-[590px] text-[17px] leading-7 text-[#bed0dc]">
-                {activeCapability.body}
-              </p>
+                return (
+                  <Button
+                    className={`!min-h-10 !rounded-md !border-transparent !px-4 !text-[12px] focus-visible:!outline-2 focus-visible:!outline-offset-[-2px] focus-visible:!outline-[#087cec] ${
+                      active
+                        ? "!bg-[#087cec] !text-white shadow-[0_3px_10px_rgb(8_124_236/20%)]"
+                        : "!bg-transparent !text-[#536774] shadow-none hover:!bg-white hover:!text-[#172f3e]"
+                    }`}
+                    key={capability.id}
+                    onClick={() => setActiveCapabilityId(capability.id)}
+                    type="button"
+                    variant="quiet"
+                    aria-pressed={active}
+                  >
+                    {capability.title}
+                  </Button>
+                );
+              })}
             </div>
 
-            <div className="mt-9 grid grid-cols-[1fr_auto_1fr_auto_1fr] items-center gap-3 max-[620px]:grid-cols-1 max-[620px]:gap-2">
-              {activeCapability.stages.map((stage, index) => (
-                <div className="contents" key={stage}>
-                  <div className="flex min-h-14 items-center rounded-md border border-white/12 bg-white/[0.045] px-3.5 text-[13px] font-semibold">
-                    {stage}
-                  </div>
-                  {index < activeCapability.stages.length - 1 && (
-                    <span
-                      className="h-px w-5 bg-[#55b9ff] max-[620px]:h-4 max-[620px]:w-px max-[620px]:justify-self-center"
-                      aria-hidden="true"
-                    />
-                  )}
+            <div className="hidden w-full max-[760px]:block">
+              <Select value={activeCapability.id} onValueChange={setActiveCapabilityId}>
+                <SelectTrigger className="h-12 w-full" aria-label="Billing model">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {billingCapabilities.map((capability) => (
+                    <SelectItem key={capability.id} value={capability.id}>
+                      {capability.title}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          <AnimatePresence mode="wait" initial={false}>
+            <motion.div
+              className="grid bg-[#087cec] text-white lg:grid-cols-[0.78fr_1.22fr]"
+              key={activeCapability.id}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.15, ease: "easeOut" }}
+            >
+              <div className="flex min-h-[300px] flex-col justify-between p-[clamp(26px,3vw,40px)] max-[760px]:min-h-0">
+                <div>
+                  <p className="m-0 text-xs font-semibold text-white/70">
+                    {activeCapability.title}
+                  </p>
+                  <p className="mt-3 mb-0 max-w-[490px] text-[16px] leading-7 text-white/[0.85]">
+                    {activeCapability.body}
+                  </p>
                 </div>
-              ))}
-            </div>
-          </div>
+                <div className="mt-10">
+                  <strong className="block [font-family:var(--font-bricolage-grotesque)] text-[clamp(52px,6vw,76px)] leading-[0.88] font-bold tracking-[-0.06em] tabular-nums">
+                    {activeCapability.metric}
+                  </strong>
+                  <span className="mt-3 block text-[13px] text-white/70">
+                    {activeCapability.metricLabel}
+                  </span>
+                </div>
+              </div>
+
+              <div className="border-l border-white/20 p-[clamp(22px,2.7vw,36px)] max-lg:border-t max-lg:border-l-0">
+                <p className="m-0 text-xs font-semibold text-white/70">Activity</p>
+                <ol className="mt-4 list-none border-y border-white/20 p-0">
+                  {activeCapability.stages.map((stage, index) => (
+                    <li
+                      className="grid min-h-[67px] grid-cols-[32px_minmax(0,1fr)_auto] items-center gap-3 border-b border-white/20 py-3 last:border-b-0 max-[480px]:grid-cols-[28px_minmax(0,1fr)]"
+                      key={stage.label}
+                    >
+                      <span className="font-mono text-[10px] font-bold text-white/55">
+                        {String(index + 1).padStart(2, "0")}
+                      </span>
+                      <span className="text-[13px] font-semibold text-white">
+                        {stage.label}
+                      </span>
+                      <code className="text-right text-[11px] text-white/70 max-[480px]:col-start-2 max-[480px]:text-left">
+                        {stage.value}
+                      </code>
+                    </li>
+                  ))}
+                </ol>
+              </div>
+            </motion.div>
+          </AnimatePresence>
         </div>
       </div>
     </section>
