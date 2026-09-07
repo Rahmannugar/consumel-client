@@ -42,3 +42,6 @@ next-env.d.ts
 
 # local design working document
 /DESIGN.md
+
+# workspace agent instructions live at ../AGENTS.md
+/AGENTS.md
