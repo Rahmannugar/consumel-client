@@ -1,8 +1,8 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
 import { getCalApi } from "@calcom/embed-react";
 import { type ComponentProps, useEffect, useRef, useState } from "react";
+import { Button } from "@/components/ui/button";
 
 type CalBookingButtonProps = ComponentProps<typeof Button>;
 
