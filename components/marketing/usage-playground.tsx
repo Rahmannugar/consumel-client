@@ -6,6 +6,13 @@ import { useReducer, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import {
@@ -63,7 +70,7 @@ function Code({ value }: { value: string }) {
 export function UsagePlayground() {
   const [state, dispatch] = useReducer(playgroundReducer, undefined, createInitialState);
   const [quantityInput, setQuantityInput] = useState(String(state.quantity));
-  const [grantInput, setGrantInput] = useState("1000");
+  const [balanceInput, setBalanceInput] = useState("3000");
   const [copyStatus, setCopyStatus] = useState("");
 
   const value =
@@ -79,9 +86,9 @@ export function UsagePlayground() {
         ? "Usage this period"
         : "Included allowance left";
   const quantity = Number(quantityInput);
-  const grantAmount = Number(grantInput);
+  const balanceAmount = Number(balanceInput);
   const validQuantity = quantityInput !== "" && quantity >= 1 && quantity <= 5000;
-  const validGrant = grantInput !== "" && grantAmount >= 1;
+  const validBalance = balanceInput !== "" && balanceAmount >= 0;
   const code = requestCode(state);
 
   function consume() {
@@ -92,8 +99,8 @@ export function UsagePlayground() {
   }
 
   function addBalance() {
-    if (!validGrant) return;
-    dispatch({ type: "grant", value: grantAmount });
+    if (!validBalance || balanceAmount < 1) return;
+    dispatch({ type: "grant", value: balanceAmount });
   }
 
   async function copyCode() {
@@ -118,67 +125,62 @@ export function UsagePlayground() {
 
         <div className={styles.demo}>
           <div className={styles.toolbar}>
-            <ToggleGroup
-              type="single"
-              value={state.model}
-              className={styles.models}
-              aria-label="Billing model"
-              onValueChange={(value) => {
-                if (models.includes(value as BillingModel)) {
-                  dispatch({ type: "modelChanged", value: value as BillingModel });
-                }
-              }}
-            >
-              {models.map((model) => (
-                <ToggleGroupItem key={model} value={model}>
-                  {model}
-                </ToggleGroupItem>
-              ))}
-            </ToggleGroup>
+            <div className={styles.toolbarControls}>
+              <ToggleGroup
+                type="single"
+                value={state.model}
+                className={styles.models}
+                aria-label="Billing model"
+                onValueChange={(value) => {
+                  if (models.includes(value as BillingModel)) {
+                    dispatch({ type: "modelChanged", value: value as BillingModel });
+                    setBalanceInput(value === "postpaid" ? "0" : "3000");
+                  }
+                }}
+              >
+                {models.map((model) => (
+                  <ToggleGroupItem key={model} value={model}>
+                    {model}
+                  </ToggleGroupItem>
+                ))}
+              </ToggleGroup>
+
+              <div className={styles.customerContext}>
+                <span>Customer</span>
+                <strong>#1842</strong>
+              </div>
+
+              <div className={styles.meterSelect}>
+                <Label htmlFor="demo-meter">Meter</Label>
+                <Select
+                  value={state.meterKey}
+                  onValueChange={(value) => dispatch({ type: "meterChanged", value })}
+                >
+                  <SelectTrigger id="demo-meter" aria-label="Meter">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {meters.map((meter) => (
+                      <SelectItem key={meter.key} value={meter.key}>
+                        {meter.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
             <Button
               variant="quiet"
               size="compact"
               onClick={() => {
                 dispatch({ type: "reset" });
                 setQuantityInput("500");
-                setGrantInput("1000");
+                setBalanceInput("3000");
                 setCopyStatus("");
               }}
             >
               Reset
             </Button>
-          </div>
-
-          <div className={styles.context}>
-            <div className={styles.customer}>
-              <Label htmlFor="demo-customer">Customer</Label>
-              <Input
-                id="demo-customer"
-                value={state.customerId}
-                onChange={(event) =>
-                  dispatch({ type: "customerChanged", value: event.target.value })
-                }
-                spellCheck={false}
-              />
-            </div>
-            <div className={styles.meterField}>
-              <span>Meter</span>
-              <ToggleGroup
-                type="single"
-                className={styles.meters}
-                aria-label="Meter"
-                value={state.meterKey}
-                onValueChange={(value) => {
-                  if (value) dispatch({ type: "meterChanged", value });
-                }}
-              >
-                {meters.map((meter) => (
-                  <ToggleGroupItem key={meter.key} value={meter.key}>
-                    {meter.name}
-                  </ToggleGroupItem>
-                ))}
-              </ToggleGroup>
-            </div>
           </div>
 
           <div className={styles.workspace}>
@@ -238,6 +240,14 @@ export function UsagePlayground() {
                 <span>{meters.find((meter) => meter.key === state.meterKey)?.name}</span>
               </div>
               <strong className={styles.balance}>{value.toLocaleString("en-US")}</strong>
+              {state.model === "hybrid" && (
+                <div className={styles.hybridMetrics}>
+                  <div>
+                    <span>Overage units</span>
+                    <strong>{state.overage.toLocaleString("en-US")}</strong>
+                  </div>
+                </div>
+              )}
               <div className={styles.progress} aria-hidden="true">
                 <i
                   style={{
@@ -246,11 +256,7 @@ export function UsagePlayground() {
                 />
               </div>
               <div className={styles.feedback} role="status">
-                {state.result.status === "idle"
-                  ? state.model === "hybrid"
-                    ? `Overage: ${state.overage.toLocaleString("en-US")} units`
-                    : ""
-                  : state.result.message}
+                {state.result.status === "idle" ? "" : state.result.message}
               </div>
 
               <div className={styles.actions}>
@@ -281,18 +287,24 @@ export function UsagePlayground() {
 
               {state.model !== "postpaid" && (
                 <div className={styles.grant}>
-                  <Label htmlFor="demo-grant">Add balance</Label>
-                  <div>
+                  <Label htmlFor="demo-balance">
+                    {state.model === "hybrid" ? "Add allowance" : "Add balance"}
+                  </Label>
+                  <div className={styles.balanceActions}>
                     <Input
-                      id="demo-grant"
+                      id="demo-balance"
                       type="number"
-                      min={1}
-                      value={grantInput}
-                      aria-invalid={grantInput !== "" && !validGrant}
-                      onChange={(event) => setGrantInput(event.target.value)}
+                      min={0}
+                      value={balanceInput}
+                      aria-invalid={balanceInput !== "" && !validBalance}
+                      onChange={(event) => setBalanceInput(event.target.value)}
                     />
-                    <Button variant="secondary" disabled={!validGrant} onClick={addBalance}>
-                      Add balance
+                    <Button
+                      variant="secondary"
+                      disabled={!validBalance || balanceAmount < 1}
+                      onClick={addBalance}
+                    >
+                      Add
                     </Button>
                   </div>
                 </div>

@@ -533,7 +533,7 @@ a:focus-visible {
   max-width: 760px;
   margin: 0;
   font-family: var(--font-bricolage-grotesque), sans-serif;
-  font-size: clamp(48px, 5.4vw, 74px);
+  font-size: clamp(40px, 4.2vw, 56px);
   font-variation-settings: "opsz" 48;
   font-weight: 720;
   letter-spacing: -0.045em;
@@ -1024,6 +1024,67 @@ a:focus-visible {
   box-shadow: 0 0 0 3px rgb(8 124 236 / 14%);
 }
 
+.ui-select-trigger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  min-width: 0;
+  padding: 0 11px;
+  color: #183040;
+  background: white;
+  border: 1px solid #cbd5dc;
+  border-radius: 8px;
+  box-shadow: 0 1px 2px rgb(18 38 52 / 4%);
+  font-family: var(--font-onest), sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  outline: none;
+}
+
+.ui-select-trigger svg {
+  width: 14px;
+  height: 14px;
+  color: #667783;
+}
+
+.ui-select-content {
+  z-index: 100;
+  min-width: var(--radix-select-trigger-width);
+  padding: 5px;
+  overflow: hidden;
+  background: white;
+  border: 1px solid #cbd5dc;
+  border-radius: 9px;
+  box-shadow: 0 14px 34px rgb(18 48 68 / 16%);
+}
+
+.ui-select-item {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 34px;
+  padding: 0 9px;
+  color: #263946;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 580;
+  outline: none;
+  cursor: default;
+}
+
+.ui-select-item[data-highlighted] {
+  color: #075aaf;
+  background: #edf6ff;
+}
+
+.ui-select-item svg {
+  width: 14px;
+  height: 14px;
+}
+
 .meter-picker > div {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -1432,25 +1493,39 @@ a:focus-visible {
 }
 
 .provider-showcase {
-  padding: 104px 0 112px;
+  padding: 88px 0 96px;
   scroll-margin-top: 96px;
   overflow: hidden;
-  color: white;
-  background: #071827;
+  color: #07121c;
+  background:
+    linear-gradient(rgb(8 124 236 / 5%) 1px, transparent 1px),
+    linear-gradient(90deg, rgb(8 124 236 / 5%) 1px, transparent 1px), #eaf4ff;
+  background-size: 72px 72px;
 }
 
 .provider-showcase__heading {
-  margin-bottom: 52px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(300px, 430px);
+  align-items: end;
+  gap: 64px;
+  margin-bottom: 36px;
 }
 
 .provider-showcase__heading h2 {
   max-width: 780px;
   margin: 0;
   font-family: var(--font-bricolage-grotesque), sans-serif;
-  font-size: clamp(46px, 5.2vw, 70px);
+  font-size: clamp(40px, 4.2vw, 56px);
   font-weight: 700;
   letter-spacing: -0.05em;
   line-height: 0.98;
+}
+
+.provider-showcase__heading p {
+  margin: 0 0 4px;
+  color: #526470;
+  font-size: 17px;
+  line-height: 1.65;
 }
 
 .logo-loop {
@@ -1458,7 +1533,7 @@ a:focus-visible {
   width: 100%;
   overflow: hidden;
   background: white;
-  border-block: 1px solid rgb(255 255 255 / 18%);
+  border-block: 1px solid #cbddea;
   mask-image: linear-gradient(to right, transparent, black 8%, black 92%, transparent);
 }
 
@@ -1489,8 +1564,45 @@ a:focus-visible {
   align-items: center;
   gap: 10px;
   min-width: 150px;
-  height: 104px;
+  height: 88px;
   color: #071827;
+}
+
+.provider-showcase__flow {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  margin-top: 30px;
+  padding: 0;
+  overflow: hidden;
+  background: rgb(255 255 255 / 70%);
+  border: 1px solid #cbddea;
+  border-radius: 12px;
+  list-style: none;
+}
+
+.provider-showcase__flow li {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-height: 66px;
+  padding: 0 20px;
+  border-left: 1px solid #cbddea;
+}
+
+.provider-showcase__flow li:first-child {
+  border-left: 0;
+}
+
+.provider-showcase__flow-number {
+  color: var(--blue);
+  font-family: var(--mono);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.provider-showcase__flow-label {
+  font-size: 14px;
+  font-weight: 650;
 }
 
 .provider-mark img {
@@ -1512,7 +1624,13 @@ a:focus-visible {
   }
 
   .provider-showcase__heading {
+    grid-template-columns: 1fr;
+    gap: 18px;
     margin-bottom: 36px;
+  }
+
+  .provider-showcase__heading p {
+    font-size: 16px;
   }
 
   .provider-mark {
@@ -1523,6 +1641,19 @@ a:focus-visible {
   .provider-mark img {
     max-width: 132px;
     height: 28px;
+  }
+
+  .provider-showcase__flow {
+    grid-template-columns: 1fr;
+  }
+
+  .provider-showcase__flow li {
+    border-top: 1px solid #cbddea;
+    border-left: 0;
+  }
+
+  .provider-showcase__flow li:first-child {
+    border-top: 0;
   }
 }
 

@@ -47,7 +47,7 @@ const idleResult: Result = { status: "idle", message: "Run consume to see the re
 function customerContext(model: BillingModel) {
   return {
     balance: model === "prepaid" ? 3000 : 0,
-    periodUsage: model === "postpaid" ? 1820 : 0,
+    periodUsage: 0,
     includedRemaining: model === "hybrid" ? 3000 : 0,
     overage: 0,
     billableOperations: 0,
@@ -120,7 +120,6 @@ export function playgroundReducer(
       }),
     };
   }
-
   const quantity = Math.max(1, Math.min(5000, Math.round(state.quantity || 1)));
   const signature = `${state.customerId}|${state.meterKey}|${quantity}|${state.model}`;
   const prior = state.processed[state.idempotencyKey];

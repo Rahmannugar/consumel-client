@@ -68,9 +68,27 @@ export function ProviderShowcase() {
   return (
     <section className="provider-showcase" id="providers" aria-labelledby="providers-title">
       <div className="page-shell provider-showcase__heading">
-        <h2 id="providers-title">Payment provider integrations</h2>
+        <h2 id="providers-title">Bring your payment provider.</h2>
+        <p>
+          Consumel verifies payment webhooks, matches each event to the right customer, and
+          keeps balances and entitlements in sync.
+        </p>
       </div>
       <LogoLoop items={providerItems} speed={32} gap={72} />
+      <ol className="page-shell provider-showcase__flow" aria-label="Payment update flow">
+        <li>
+          <span className="provider-showcase__flow-number">01</span>
+          <strong className="provider-showcase__flow-label">Payment received</strong>
+        </li>
+        <li>
+          <span className="provider-showcase__flow-number">02</span>
+          <strong className="provider-showcase__flow-label">Customer matched</strong>
+        </li>
+        <li>
+          <span className="provider-showcase__flow-number">03</span>
+          <strong className="provider-showcase__flow-label">Balance updated</strong>
+        </li>
+      </ol>
     </section>
   );
 }

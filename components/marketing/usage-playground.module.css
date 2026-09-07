@@ -16,7 +16,7 @@
 .heading h2 {
   margin: 0;
   font-family: var(--font-bricolage-grotesque), sans-serif;
-  font-size: clamp(48px, 5vw, 68px);
+  font-size: clamp(40px, 4.2vw, 56px);
   font-weight: 700;
   letter-spacing: -0.045em;
   line-height: 0.98;
@@ -37,8 +37,7 @@
   box-shadow: 0 22px 58px rgb(18 48 68 / 8%);
 }
 
-.toolbar,
-.context {
+.toolbar {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -47,8 +46,15 @@
 }
 
 .toolbar {
-  min-height: 62px;
+  min-height: 66px;
   border-bottom: 1px solid #dce5eb;
+}
+
+.toolbarControls {
+  display: flex;
+  align-items: center;
+  gap: 22px;
+  min-width: 0;
 }
 
 .models {
@@ -58,8 +64,7 @@
   border-radius: 9px;
 }
 
-.models button,
-.meters button {
+.models button {
   color: #5b6b77;
   background: transparent;
   border: 1px solid transparent;
@@ -73,53 +78,38 @@
   border-radius: 6px;
 }
 
-.models button[data-state="on"],
-.meters button[data-state="on"] {
+.models button[data-state="on"] {
   color: #075aaf;
   background: white;
   border-color: #cfdae2;
   box-shadow: 0 1px 3px rgb(16 43 64 / 7%);
 }
 
-.context {
-  min-height: 70px;
-  background: #f8fafb;
-  border-bottom: 1px solid #dce5eb;
-}
-
-.customer,
-.meterField {
+.customerContext,
+.meterSelect {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 8px;
 }
 
-.customer label,
-.meterField > span {
+.customerContext span,
+.meterSelect label {
   flex: none;
   color: #62727e;
   font-size: 12px;
   font-weight: 650;
 }
 
-.customer input {
-  width: 210px;
-  height: 40px;
+.customerContext strong {
   color: #183040;
-  background: white;
-  border-color: #cbd7df;
   font-family: var(--mono);
   font-size: 12px;
+  font-weight: 600;
 }
 
-.meters {
-  gap: 3px;
-}
-
-.meters button {
-  min-height: 40px;
-  padding-inline: 14px;
-  border-radius: 7px;
+.meterSelect :global(.ui-select-trigger) {
+  width: 138px;
+  height: 38px;
 }
 
 .workspace {
@@ -197,7 +187,7 @@
 }
 
 .codeContent pre {
-  min-height: 286px;
+  min-height: 250px;
   margin: 0;
   padding: 26px 28px;
   overflow: auto;
@@ -221,7 +211,7 @@
 
 .result {
   min-width: 0;
-  padding: 26px 30px 24px;
+  padding: 22px 26px 20px;
   color: white;
   background: #087cec;
 }
@@ -235,14 +225,35 @@
 
 .balance {
   display: block;
-  margin: 16px 0 18px;
+  margin: 12px 0 14px;
   overflow-wrap: anywhere;
   font-family: var(--font-bricolage-grotesque), sans-serif;
-  font-size: clamp(52px, 5vw, 72px);
+  font-size: clamp(46px, 4vw, 62px);
   font-variant-numeric: tabular-nums;
   font-weight: 700;
   letter-spacing: -0.05em;
   line-height: 1;
+}
+
+.hybridMetrics {
+  display: flex;
+  margin: -2px 0 14px;
+}
+
+.hybridMetrics > div {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.hybridMetrics span {
+  color: rgb(255 255 255 / 72%);
+  font-size: 11px;
+}
+
+.hybridMetrics strong {
+  font-size: 18px;
+  font-variant-numeric: tabular-nums;
 }
 
 .progress {
@@ -260,8 +271,8 @@
 }
 
 .feedback {
-  min-height: 52px;
-  padding-top: 13px;
+  min-height: 42px;
+  padding-top: 10px;
   font-size: 13px;
   line-height: 1.5;
 }
@@ -318,12 +329,12 @@
 .grant {
   display: grid;
   gap: 8px;
-  margin-top: 14px;
-  padding-top: 14px;
+  margin-top: 12px;
+  padding-top: 12px;
   border-top: 1px solid rgb(255 255 255 / 26%);
 }
 
-.grant > div {
+.balanceActions {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
   gap: 8px;
@@ -343,7 +354,8 @@
 }
 
 .section button:focus-visible,
-.section input:focus-visible {
+.section input:focus-visible,
+.section :global(.ui-select-trigger:focus-visible) {
   outline: 2px solid #075aaf;
   outline-offset: 2px;
 }
@@ -360,11 +372,13 @@
     gap: 36px;
   }
 
-  .context {
-    align-items: flex-start;
-    flex-direction: column;
-    gap: 14px;
-    padding-block: 18px;
+  .toolbarControls {
+    gap: 12px;
+  }
+
+  .customerContext span,
+  .meterSelect label {
+    display: none;
   }
 
   .workspace {
@@ -423,32 +437,22 @@
     font-size: 12px;
   }
 
-  .context {
-    padding: 16px;
-  }
-
-  .customer,
-  .meterField {
-    width: 100%;
-  }
-
-  .customer input {
-    width: 100%;
-  }
-
-  .meterField {
+  .toolbar {
     align-items: flex-start;
-    flex-direction: column;
+    padding-block: 10px;
   }
 
-  .meters {
-    width: 100%;
+  .toolbarControls {
+    align-items: flex-start;
+    flex-wrap: wrap;
   }
 
-  .meters button {
-    flex: 1;
-    padding-inline: 8px;
-    font-size: 11px;
+  .customerContext {
+    min-height: 38px;
+  }
+
+  .meterSelect :global(.ui-select-trigger) {
+    width: 124px;
   }
 
   .workspace {
@@ -462,7 +466,7 @@
   }
 
   .balance {
-    font-size: 56px;
+    font-size: 52px;
   }
 
   .codeToolbar {
