@@ -146,8 +146,16 @@ export function UsagePlayground() {
               </ToggleGroup>
 
               <div className={styles.customerContext}>
-                <span>Customer</span>
-                <strong>#1842</strong>
+                <Label htmlFor="demo-customer">Customer</Label>
+                <Input
+                  id="demo-customer"
+                  value={state.customerId}
+                  spellCheck={false}
+                  aria-label="Customer ID"
+                  onChange={(event) =>
+                    dispatch({ type: "customerChanged", value: event.target.value })
+                  }
+                />
               </div>
 
               <div className={styles.meterSelect}>

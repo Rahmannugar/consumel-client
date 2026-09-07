@@ -92,7 +92,7 @@
   gap: 8px;
 }
 
-.customerContext span,
+.customerContext label,
 .meterSelect label {
   flex: none;
   color: #62727e;
@@ -100,11 +100,14 @@
   font-weight: 650;
 }
 
-.customerContext strong {
+.customerContext input {
+  width: 158px;
+  height: 38px;
   color: #183040;
+  background: white;
+  border-color: #cbd7df;
   font-family: var(--mono);
   font-size: 12px;
-  font-weight: 600;
 }
 
 .meterSelect :global(.ui-select-trigger) {
@@ -376,7 +379,6 @@
     gap: 12px;
   }
 
-  .customerContext span,
   .meterSelect label {
     display: none;
   }
@@ -449,6 +451,10 @@
 
   .customerContext {
     min-height: 38px;
+  }
+
+  .customerContext input {
+    width: 142px;
   }
 
   .meterSelect :global(.ui-select-trigger) {

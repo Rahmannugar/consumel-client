@@ -76,17 +76,39 @@ export function ProviderShowcase() {
       </div>
       <LogoLoop items={providerItems} speed={32} gap={72} />
       <ol className="page-shell provider-showcase__flow" aria-label="Payment update flow">
-        <li>
-          <span className="provider-showcase__flow-number">01</span>
-          <strong className="provider-showcase__flow-label">Payment received</strong>
+        <li className="provider-showcase__event-card">
+          <div>
+            <span className="provider-showcase__flow-number">01</span>
+          </div>
+          <strong className="provider-showcase__flow-label">Payment confirmed</strong>
+          <code className="provider-showcase__flow-value">payment.succeeded</code>
         </li>
-        <li>
-          <span className="provider-showcase__flow-number">02</span>
-          <strong className="provider-showcase__flow-label">Customer matched</strong>
+        <li className="provider-showcase__mapping-card">
+          <div>
+            <span className="provider-showcase__flow-number">02</span>
+          </div>
+          <strong className="provider-showcase__flow-label">Customer resolved</strong>
+          <div className="provider-showcase__mapping">
+            <span className="provider-showcase__mapping-value">
+              <small className="provider-showcase__mapping-label">Provider ref</small>
+              <code className="provider-showcase__mapping-code">cus_P4Z8</code>
+            </span>
+            <i className="provider-showcase__mapping-connector" aria-hidden="true" />
+            <span className="provider-showcase__mapping-value">
+              <small className="provider-showcase__mapping-label">Consumel</small>
+              <code className="provider-showcase__mapping-code">customer_1842</code>
+            </span>
+          </div>
         </li>
-        <li>
-          <span className="provider-showcase__flow-number">03</span>
+        <li className="provider-showcase__balance-card">
+          <div>
+            <span className="provider-showcase__flow-number">03</span>
+          </div>
           <strong className="provider-showcase__flow-label">Balance updated</strong>
+          <div className="provider-showcase__balance-value">
+            <strong className="provider-showcase__balance-amount">+5,000</strong>
+            <span className="provider-showcase__balance-unit">units</span>
+          </div>
         </li>
       </ol>
     </section>
