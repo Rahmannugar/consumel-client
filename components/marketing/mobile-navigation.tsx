@@ -7,7 +7,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Brand } from "./brand";
 import { CalBookingButton } from "./cal-booking-button";
-import { waitlistPopupAttributes, waitlistPopupHref } from "./waitlist-popup";
+import { WaitlistLink } from "./waitlist-link";
 
 type NavigationItem = {
   label: string;
@@ -116,9 +116,7 @@ export function MobileNavigation({ items }: MobileNavigationProps) {
                         className="w-full !rounded-[9px] !border-white !bg-white !text-[#071018] hover:!bg-[#edf6ff]"
                         variant="secondary"
                       >
-                        <a href={waitlistPopupHref} {...waitlistPopupAttributes}>
-                          Join the waitlist
-                        </a>
+                        <WaitlistLink>Join the waitlist</WaitlistLink>
                       </Button>
                     </Dialog.Close>
                   </div>
