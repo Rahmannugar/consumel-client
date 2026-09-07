@@ -2,7 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Brand } from "./brand";
 import { CalBookingButton } from "./cal-booking-button";
 import { MobileNavigation } from "./mobile-navigation";
-import { waitlistPopupAttributes, waitlistPopupHref } from "./waitlist-popup";
+import { WaitlistLink } from "./waitlist-link";
 
 const navigation = [
   { label: "How it works", href: "#how-it-works" },
@@ -51,9 +51,7 @@ export function SiteHeader({ sectionHrefPrefix = "" }: SiteHeaderProps) {
             size="compact"
             variant="secondary"
           >
-            <a href={waitlistPopupHref} {...waitlistPopupAttributes}>
-              Join the waitlist
-            </a>
+            <WaitlistLink>Join the waitlist</WaitlistLink>
           </Button>
         </div>
         <MobileNavigation items={navigationItems} />

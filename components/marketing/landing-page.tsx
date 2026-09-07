@@ -7,7 +7,7 @@ import { ProviderShowcase } from "./provider-showcase";
 import { SiteFooter } from "./site-footer";
 import { SiteHeader } from "./site-header";
 import { UsagePlayground } from "./usage-playground";
-import { waitlistPopupAttributes, waitlistPopupHref } from "./waitlist-popup";
+import { WaitlistLink } from "./waitlist-link";
 
 export function LandingPage() {
   return (
@@ -23,13 +23,9 @@ export function LandingPage() {
                 postpaid, or hybrid billing through the provider you already use.
               </p>
               <div className="hero__actions">
-                <a
-                  className="hero-action hero-action--primary"
-                  href={waitlistPopupHref}
-                  {...waitlistPopupAttributes}
-                >
+                <WaitlistLink className="hero-action hero-action--primary">
                   Join the waitlist
-                </a>
+                </WaitlistLink>
                 <a className="hero-action hero-action--secondary" href="#how-it-works">
                   See how it works
                 </a>

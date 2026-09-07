@@ -1,6 +1,6 @@
-import type { ReactNode } from "react";
 import { SiteFooter } from "@/components/marketing/site-footer";
 import { SiteHeader } from "@/components/marketing/site-header";
+import type { ReactNode } from "react";
 
 type LegalPageProps = {
   title: string;

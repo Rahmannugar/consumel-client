@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { CalBookingButton } from "./cal-booking-button";
-import { waitlistPopupAttributes, waitlistPopupHref } from "./waitlist-popup";
+import { WaitlistLink } from "./waitlist-link";
 
 export function ClosingCta() {
   return (
@@ -27,9 +27,7 @@ export function ClosingCta() {
             className="w-full !border-white !bg-white !text-[#071018] hover:!bg-[#edf6ff]"
             variant="secondary"
           >
-            <a href={waitlistPopupHref} {...waitlistPopupAttributes}>
-              Join the waitlist
-            </a>
+            <WaitlistLink>Join the waitlist</WaitlistLink>
           </Button>
         </div>
       </div>

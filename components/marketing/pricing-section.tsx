@@ -4,7 +4,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { CalBookingButton } from "./cal-booking-button";
-import { waitlistPopupAttributes, waitlistPopupHref } from "./waitlist-popup";
+import { WaitlistLink } from "./waitlist-link";
 
 type BillingCycle = "monthly" | "yearly";
 
@@ -131,9 +131,7 @@ function PricingCard({ plan, cycle }: { plan: Plan; cycle: BillingCycle }) {
           className="mt-auto w-full"
           variant={plan.recommended ? "primary" : "secondary"}
         >
-          <a href={waitlistPopupHref} {...waitlistPopupAttributes}>
-            Join the waitlist
-          </a>
+          <WaitlistLink>Join the waitlist</WaitlistLink>
         </Button>
       )}
     </article>
