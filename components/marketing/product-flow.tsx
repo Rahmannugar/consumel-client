@@ -41,8 +41,8 @@ const billingCapabilities = [
     metricLabel: "Available balance",
     stages: [
       { label: "Balance funded", value: "+3,000 units" },
-      { label: "Usage requested", value: "500 units" },
-      { label: "Balance deducted", value: "2,500 remaining" },
+      { label: "Usage consumed", value: "−500 units" },
+      { label: "Balance remaining", value: "2,500 units" },
     ],
   },
   {
@@ -52,9 +52,9 @@ const billingCapabilities = [
     metric: "2,500",
     metricLabel: "Allowance remaining",
     stages: [
-      { label: "Period started", value: "Monthly" },
-      { label: "Allowance reset", value: "+3,000 units" },
-      { label: "Usage deducted", value: "2,500 remaining" },
+      { label: "Allowance reset", value: "3,000 units" },
+      { label: "Usage consumed", value: "−500 units" },
+      { label: "Allowance remaining", value: "2,500 units" },
     ],
   },
   {
@@ -65,8 +65,8 @@ const billingCapabilities = [
     metricLabel: "Usage this period",
     stages: [
       { label: "Usage recorded", value: "+500 units" },
-      { label: "Period total updated", value: "14,500 units" },
-      { label: "Amount calculated", value: "At period end" },
+      { label: "Period usage", value: "14,500 units" },
+      { label: "Amount calculated", value: "After period ends" },
     ],
   },
   {
@@ -76,9 +76,9 @@ const billingCapabilities = [
     metric: "500",
     metricLabel: "Overage units",
     stages: [
-      { label: "Allowance checked", value: "3,000 available" },
-      { label: "Usage deducted", value: "3,500 units" },
-      { label: "Overage recorded", value: "500 units" },
+      { label: "Included allowance", value: "3,000 units" },
+      { label: "Usage this period", value: "3,500 units" },
+      { label: "Overage", value: "500 units" },
     ],
   },
 ] as const;
@@ -198,14 +198,13 @@ export function ProductFlow() {
         ))}
       </div>
 
-      <div className="page-shell mt-20 border-t border-[#cbd7df] pt-16 max-[820px]:mt-14 max-[820px]:border-t-0 max-[820px]:pt-12">
+      <div className="page-shell mt-20 pt-16 max-[820px]:mt-14 max-[820px]:pt-12">
         <header className="grid grid-cols-[minmax(0,1fr)_minmax(280px,0.72fr)] items-end gap-12 max-[760px]:grid-cols-1 max-[760px]:gap-5">
           <h3 className="m-0 max-w-[660px] [font-family:var(--font-bricolage-grotesque)] text-[clamp(34px,3.7vw,48px)] leading-none font-bold tracking-[-0.04em]">
-            Choose how usage is billed.
+            Model usage around your product.
           </h3>
           <p className="m-0 max-w-[470px] text-base leading-7 text-[#5d6872]">
-            Run prepaid, recurring, postpaid, and hybrid billing through the same consumption
-            API.
+            Prepaid credits, recurring allowances, postpaid usage, and overage through one API.
           </p>
         </header>
 
@@ -283,8 +282,7 @@ export function ProductFlow() {
               </div>
 
               <div className="border-l border-white/20 p-[clamp(22px,2.7vw,36px)] max-lg:border-t max-lg:border-l-0">
-                <p className="m-0 text-xs font-semibold text-white/70">Activity</p>
-                <ol className="mt-4 list-none border-y border-white/20 p-0">
+                <ol className="m-0 list-none border-y border-white/20 p-0">
                   {activeCapability.stages.map((stage, index) => (
                     <li
                       className="grid min-h-[67px] grid-cols-[32px_minmax(0,1fr)_auto] items-center gap-3 border-b border-white/20 py-3 last:border-b-0 max-[480px]:grid-cols-[28px_minmax(0,1fr)]"

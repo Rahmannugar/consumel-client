@@ -11,6 +11,7 @@ type BillingCycle = "monthly" | "yearly";
 type Plan = {
   id: string;
   name: string;
+  description: string;
   monthlyPrice: string;
   yearlyPrice: string;
   operations: string;
@@ -21,8 +22,9 @@ type Plan = {
 
 const plans: Plan[] = [
   {
-    id: "free",
-    name: "Free",
+    id: "starter",
+    name: "Starter",
+    description: "For getting started with usage-based billing.",
     monthlyPrice: "$0",
     yearlyPrice: "$0",
     operations: "1,000 Live billable operations / month",
@@ -37,6 +39,7 @@ const plans: Plan[] = [
   {
     id: "growth",
     name: "Growth",
+    description: "For growing products with higher usage needs.",
     monthlyPrice: "$20",
     yearlyPrice: "$200",
     operations: "10,000 Live billable operations / month",
@@ -52,6 +55,7 @@ const plans: Plan[] = [
   {
     id: "professional",
     name: "Professional",
+    description: "For products with higher usage volumes and more advanced billing needs.",
     monthlyPrice: "$50",
     yearlyPrice: "$500",
     operations: "30,000 Live billable operations / month",
@@ -67,6 +71,8 @@ const plans: Plan[] = [
   {
     id: "enterprise",
     name: "Enterprise",
+    description:
+      "Custom usage-based billing infrastructure for larger or more complex products.",
     monthlyPrice: "Custom",
     yearlyPrice: "Custom",
     operations: "Flexible operation allowances",
@@ -101,7 +107,10 @@ function PricingCard({ plan, cycle }: { plan: Plan; cycle: BillingCycle }) {
       )}
       <div className="min-h-[188px] border-b border-[#dce5eb] pb-6 max-[620px]:min-h-0">
         <h3 className="m-0 text-[15px] font-bold">{plan.name}</h3>
-        <div className="mt-6 flex items-baseline gap-[7px]">
+        <p className="mt-3 mb-0 min-h-[34px] text-[11px] leading-[1.5] text-[#536774] max-[620px]:min-h-0">
+          {plan.description}
+        </p>
+        <div className="mt-5 flex items-baseline gap-[7px]">
           <strong className="[font-family:var(--font-bricolage-grotesque)] text-[clamp(34px,3vw,46px)] leading-none font-bold tracking-[-0.05em] break-words tabular-nums">
             {price}
           </strong>
