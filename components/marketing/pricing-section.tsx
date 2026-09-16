@@ -82,6 +82,7 @@ const plans: Plan[] = [
       "Custom member limit",
       "Advanced analytics",
       "Dedicated support",
+      "Uptime SLAs",
       "Payment providers included",
       "Custom identity requirements",
     ],
