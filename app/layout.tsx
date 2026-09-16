@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import localFont from "next/font/local";
 import type { ReactNode } from "react";
+import { CookieNotice } from "@/components/site/cookie-notice";
 import "./globals.css";
 
 const bricolageGrotesque = localFont({
@@ -54,13 +55,24 @@ export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="en" className={`${bricolageGrotesque.variable} ${onest.variable}`}>
       <head>
+        <link rel="preconnect" href="https://cdn.jsdelivr.net" crossOrigin="anonymous" />
+        <link
+          rel="stylesheet"
+          id="silktide-consent-manager-css"
+          href="https://cdn.jsdelivr.net/gh/silktide/consent-manager@v2.0.1/silktide-consent-manager.css"
+          integrity="sha384-EdMq+R+YOnsbelo08wPenoTlnxbAyxI11NMIxzugx/qAsbh64KcOkqxYqq6pfvO/"
+          crossOrigin="anonymous"
+        />
         <link rel="preconnect" href="https://tally.so" />
         <link rel="preconnect" href="https://app.cal.com" />
         <link rel="dns-prefetch" href="https://tally.so" />
         <link rel="dns-prefetch" href="https://app.cal.com" />
         <script async src="https://tally.so/widgets/embed.js" />
       </head>
-      <body>{children}</body>
+      <body>
+        {children}
+        <CookieNotice />
+      </body>
     </html>
   );
 }

@@ -52,6 +52,23 @@ a:focus-visible {
   color: var(--blue-dark);
 }
 
+html body #stcm-wrapper {
+  --boxShadow: 0 20px 55px rgb(0 15 30 / 28%);
+  --fontFamily: var(--font-onest), sans-serif;
+  --primaryColor: #087cec;
+  --backgroundColor: white;
+  --textColor: #071018;
+  --backdropBackgroundColor: rgb(7 16 24 / 28%);
+  --backdropBackgroundBlur: 2px;
+  --iconColor: #087cec;
+  --iconBackgroundColor: white;
+}
+
+html body #stcm-wrapper #stcm-modal .stcm-modal-reject-all,
+html body #stcm-wrapper #stcm-modal .stcm-credit-link {
+  display: none;
+}
+
 .page-shell {
   width: min(1210px, calc(100% - 48px));
   margin-inline: auto;
