@@ -45,7 +45,7 @@ export function VerifyEmailClient({ email }: { email: string }) {
     event.preventDefault();
     const result = verificationSchema.safeParse({ email, code });
     if (!result.success) {
-      toast.error(validationMessage(result));
+      toast.warning(validationMessage(result));
       return;
     }
     verification.mutate(result.data, {
@@ -60,7 +60,7 @@ export function VerifyEmailClient({ email }: { email: string }) {
   function resend() {
     const result = forgotPasswordSchema.safeParse({ email });
     if (!result.success) {
-      toast.error(validationMessage(result));
+      toast.warning(validationMessage(result));
       return;
     }
     resendVerification.mutate(result.data.email, {

@@ -54,7 +54,7 @@ export function SignInClient() {
     event.preventDefault();
     const result = signInSchema.safeParse({ email, password });
     if (!result.success) {
-      toast.error(validationMessage(result));
+      toast.warning(validationMessage(result));
       return;
     }
     passwordSignIn.mutate(result.data, {

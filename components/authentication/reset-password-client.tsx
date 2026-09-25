@@ -24,7 +24,7 @@ export function ResetPasswordClient({ token }: { token: string }) {
     event.preventDefault();
     const result = resetPasswordSchema.safeParse({ token, password, confirmation });
     if (!result.success) {
-      toast.error(validationMessage(result));
+      toast.warning(validationMessage(result));
       return;
     }
 

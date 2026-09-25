@@ -23,7 +23,7 @@ export function ForgotPasswordClient() {
     event.preventDefault();
     const result = forgotPasswordSchema.safeParse({ email });
     if (!result.success) {
-      toast.error(validationMessage(result));
+      toast.warning(validationMessage(result));
       return;
     }
     passwordResetRequest.mutate(result.data.email, {

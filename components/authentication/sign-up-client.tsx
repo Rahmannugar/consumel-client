@@ -46,7 +46,7 @@ export function SignUpClient() {
     event.preventDefault();
     const result = signUpSchema.safeParse({ email, password });
     if (!result.success) {
-      toast.error(validationMessage(result));
+      toast.warning(validationMessage(result));
       return;
     }
 
