@@ -14,6 +14,10 @@ import {
   requiresEmailVerification,
 } from "@/lib/authentication/authentication.service";
 import { useAuthenticationStore } from "@/lib/authentication/authentication.store";
+import {
+  signInSchema,
+  validationMessage,
+} from "@/lib/authentication/authentication.validation";
 import { useGoogleSignIn, usePasswordSignIn } from "@/lib/authentication/useAuthentication";
 import { LastUsedBadge } from "./auth-feedback";
 import { GoogleIcon } from "./google-icon";
@@ -48,22 +52,24 @@ export function SignInClient() {
 
   function submitPassword(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    passwordSignIn.mutate(
-      { email, password },
-      {
-        onSuccess: (account) => {
-          rememberSignInMethod("password");
-          router.replace(authenticatedDestination(account));
-        },
-        onError: (requestError) => {
-          if (requiresEmailVerification(requestError)) {
-            router.push(`/verify-email?email=${encodeURIComponent(email.trim())}`);
-            return;
-          }
-          toast.error(authenticationErrorMessage(requestError));
-        },
+    const result = signInSchema.safeParse({ email, password });
+    if (!result.success) {
+      toast.error(validationMessage(result));
+      return;
+    }
+    passwordSignIn.mutate(result.data, {
+      onSuccess: (account) => {
+        rememberSignInMethod("password");
+        router.replace(authenticatedDestination(account));
       },
-    );
+      onError: (requestError) => {
+        if (requiresEmailVerification(requestError)) {
+          router.push(`/verify-email?email=${encodeURIComponent(result.data.email)}`);
+          return;
+        }
+        toast.error(authenticationErrorMessage(requestError));
+      },
+    });
   }
 
   function continueWithGoogle() {

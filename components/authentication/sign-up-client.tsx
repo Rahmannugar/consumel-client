@@ -9,7 +9,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { authenticationErrorMessage } from "@/lib/authentication/authentication.service";
-import { passwordValidationMessage } from "@/lib/authentication/authentication.validation";
+import {
+  signUpSchema,
+  validationMessage,
+} from "@/lib/authentication/authentication.validation";
 import { useGoogleSignIn, useSignUp } from "@/lib/authentication/useAuthentication";
 import { GoogleIcon } from "./google-icon";
 import { PasswordInput } from "./password-input";
@@ -41,21 +44,17 @@ export function SignUpClient() {
 
   function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    const validationMessage = passwordValidationMessage(password);
-    if (validationMessage) {
-      toast.error(validationMessage);
+    const result = signUpSchema.safeParse({ email, password });
+    if (!result.success) {
+      toast.error(validationMessage(result));
       return;
     }
 
-    const normalizedEmail = email.trim().toLowerCase();
-    signUpMutation.mutate(
-      { email: normalizedEmail, password },
-      {
-        onSuccess: () =>
-          router.push(`/verify-email?email=${encodeURIComponent(normalizedEmail)}`),
-        onError: (requestError) => toast.error(authenticationErrorMessage(requestError)),
-      },
-    );
+    signUpMutation.mutate(result.data, {
+      onSuccess: () =>
+        router.push(`/verify-email?email=${encodeURIComponent(result.data.email)}`),
+      onError: (requestError) => toast.error(authenticationErrorMessage(requestError)),
+    });
   }
 
   function continueWithGoogle() {

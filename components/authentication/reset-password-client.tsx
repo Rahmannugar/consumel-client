@@ -7,7 +7,10 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { authenticationErrorMessage } from "@/lib/authentication/authentication.service";
-import { passwordValidationMessage } from "@/lib/authentication/authentication.validation";
+import {
+  resetPasswordSchema,
+  validationMessage,
+} from "@/lib/authentication/authentication.validation";
 import { useResetPassword } from "@/lib/authentication/useAuthentication";
 import { PasswordInput } from "./password-input";
 
@@ -19,22 +22,14 @@ export function ResetPasswordClient({ token }: { token: string }) {
 
   function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (!token) {
-      toast.error("This password-reset link is incomplete.");
-      return;
-    }
-    const validationMessage = passwordValidationMessage(password);
-    if (validationMessage) {
-      toast.error(validationMessage);
-      return;
-    }
-    if (password !== confirmation) {
-      toast.error("The passwords do not match.");
+    const result = resetPasswordSchema.safeParse({ token, password, confirmation });
+    if (!result.success) {
+      toast.error(validationMessage(result));
       return;
     }
 
     passwordReset.mutate(
-      { token, password },
+      { token: result.data.token, password: result.data.password },
       {
         onSuccess: () => setComplete(true),
         onError: (requestError) => toast.error(authenticationErrorMessage(requestError)),

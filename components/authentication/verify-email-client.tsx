@@ -13,6 +13,11 @@ import {
   authenticationErrorMessage,
 } from "@/lib/authentication/authentication.service";
 import { useAuthenticationStore } from "@/lib/authentication/authentication.store";
+import {
+  forgotPasswordSchema,
+  validationMessage,
+  verificationSchema,
+} from "@/lib/authentication/authentication.validation";
 import { useResendVerification, useVerifyEmail } from "@/lib/authentication/useAuthentication";
 
 export function VerifyEmailClient({ email }: { email: string }) {
@@ -38,24 +43,27 @@ export function VerifyEmailClient({ email }: { email: string }) {
 
   function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (!/^\d{6}$/.test(code)) {
-      toast.error("Enter the six-digit verification code.");
+    const result = verificationSchema.safeParse({ email, code });
+    if (!result.success) {
+      toast.error(validationMessage(result));
       return;
     }
-    verification.mutate(
-      { email, code },
-      {
-        onSuccess: (account) => {
-          rememberSignInMethod("password");
-          router.replace(authenticatedDestination(account));
-        },
-        onError: (requestError) => toast.error(authenticationErrorMessage(requestError)),
+    verification.mutate(result.data, {
+      onSuccess: (account) => {
+        rememberSignInMethod("password");
+        router.replace(authenticatedDestination(account));
       },
-    );
+      onError: (requestError) => toast.error(authenticationErrorMessage(requestError)),
+    });
   }
 
   function resend() {
-    resendVerification.mutate(email, {
+    const result = forgotPasswordSchema.safeParse({ email });
+    if (!result.success) {
+      toast.error(validationMessage(result));
+      return;
+    }
+    resendVerification.mutate(result.data.email, {
       onSuccess: () => {
         setResendIn(60);
         toast.success("A new verification code was sent.");

@@ -8,6 +8,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { authenticationErrorMessage } from "@/lib/authentication/authentication.service";
+import {
+  forgotPasswordSchema,
+  validationMessage,
+} from "@/lib/authentication/authentication.validation";
 import { useRequestPasswordReset } from "@/lib/authentication/useAuthentication";
 
 export function ForgotPasswordClient() {
@@ -17,7 +21,12 @@ export function ForgotPasswordClient() {
 
   function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    passwordResetRequest.mutate(email.trim().toLowerCase(), {
+    const result = forgotPasswordSchema.safeParse({ email });
+    if (!result.success) {
+      toast.error(validationMessage(result));
+      return;
+    }
+    passwordResetRequest.mutate(result.data.email, {
       onSuccess: () => setSent(true),
       onError: (requestError) => toast.error(authenticationErrorMessage(requestError)),
     });
