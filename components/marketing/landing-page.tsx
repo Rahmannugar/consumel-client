@@ -1,3 +1,4 @@
+import { CookieNotice } from "@/components/site/cookie-notice";
 import { ClosingCta } from "./closing-cta";
 import { FaqSection } from "./faq-section";
 import { HeroParallax } from "./hero-parallax";
@@ -44,6 +45,7 @@ export function LandingPage() {
         <ClosingCta />
       </main>
       <SiteFooter />
+      <CookieNotice />
     </div>
   );
 }

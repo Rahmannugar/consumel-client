@@ -1,0 +1,21 @@
+import type { Metadata } from "next";
+import { AuthShell } from "@/components/authentication/auth-shell";
+import { VerifyEmailClient } from "@/components/authentication/verify-email-client";
+
+export const metadata: Metadata = {
+  title: "Verify email",
+  robots: { index: false, follow: false },
+};
+
+export default async function VerifyEmailPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ email?: string }>;
+}) {
+  const { email = "" } = await searchParams;
+  return (
+    <AuthShell>
+      <VerifyEmailClient email={email} />
+    </AuthShell>
+  );
+}

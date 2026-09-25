@@ -1,7 +1,8 @@
 import type { Metadata, Viewport } from "next";
 import localFont from "next/font/local";
 import type { ReactNode } from "react";
-import { CookieNotice } from "@/components/site/cookie-notice";
+import { ApplicationProviders } from "@/components/providers/application-providers";
+import { Toaster } from "@/components/ui/sonner";
 import "./globals.css";
 
 const bricolageGrotesque = localFont({
@@ -70,8 +71,10 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         <script async src="https://tally.so/widgets/embed.js" />
       </head>
       <body>
-        {children}
-        <CookieNotice />
+        <ApplicationProviders>
+          {children}
+          <Toaster />
+        </ApplicationProviders>
       </body>
     </html>
   );

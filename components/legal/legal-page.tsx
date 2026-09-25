@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import { SiteFooter } from "@/components/marketing/site-footer";
 import { SiteHeader } from "@/components/marketing/site-header";
+import { CookieNotice } from "@/components/site/cookie-notice";
 
 type LegalPageProps = {
   title: string;
@@ -22,6 +23,7 @@ export function LegalPage({ title, description, children }: LegalPageProps) {
         <article className="legal-content">{children}</article>
       </main>
       <SiteFooter sectionHrefPrefix="/" />
+      <CookieNotice />
     </div>
   );
 }
