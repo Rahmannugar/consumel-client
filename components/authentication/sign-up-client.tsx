@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import type { FormEvent } from "react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -21,6 +21,11 @@ export function SignUpClient() {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmation, setConfirmation] = useState("");
+  const [invalidFields, setInvalidFields] = useState<Set<SignUpField>>(() => new Set());
+  const emailRef = useRef<HTMLInputElement>(null);
+  const passwordRef = useRef<HTMLInputElement>(null);
+  const confirmationRef = useRef<HTMLInputElement>(null);
   const signUpMutation = useSignUp();
   const googleSignIn = useGoogleSignIn();
   const pending = signUpMutation.isPending
@@ -44,23 +49,48 @@ export function SignUpClient() {
 
   function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    const result = signUpSchema.safeParse({ email, password });
+    const result = signUpSchema.safeParse({ email, password, confirmation });
     if (!result.success) {
+      const fields = new Set<SignUpField>();
+      for (const issue of result.error.issues) {
+        const field = issue.path[0];
+        if (isSignUpField(field)) fields.add(field);
+      }
+      setInvalidFields(fields);
+      const firstInvalidField = result.error.issues
+        .map((issue) => issue.path[0])
+        .find(isSignUpField);
+      if (firstInvalidField === "email") emailRef.current?.focus();
+      if (firstInvalidField === "password") passwordRef.current?.focus();
+      if (firstInvalidField === "confirmation") confirmationRef.current?.focus();
       toast.warning(validationMessage(result));
       return;
     }
 
-    signUpMutation.mutate(result.data, {
-      onSuccess: () =>
-        router.push(`/verify-email?email=${encodeURIComponent(result.data.email)}`),
-      onError: (requestError) => toast.error(authenticationErrorMessage(requestError)),
-    });
+    setInvalidFields(new Set());
+    signUpMutation.mutate(
+      { email: result.data.email, password: result.data.password },
+      {
+        onSuccess: () =>
+          router.push(`/verify-email?email=${encodeURIComponent(result.data.email)}`),
+        onError: (requestError) => toast.error(authenticationErrorMessage(requestError)),
+      },
+    );
   }
 
   function continueWithGoogle() {
     googleSignIn.mutate(undefined, {
       onSuccess: (url) => window.location.assign(url),
       onError: (requestError) => toast.error(authenticationErrorMessage(requestError)),
+    });
+  }
+
+  function clearInvalidField(field: SignUpField) {
+    setInvalidFields((current) => {
+      if (!current.has(field)) return current;
+      const next = new Set(current);
+      next.delete(field);
+      return next;
     });
   }
 
@@ -93,25 +123,52 @@ export function SignUpClient() {
         <div className="space-y-2">
           <Label htmlFor="sign-up-email">Email</Label>
           <Input
+            ref={emailRef}
             id="sign-up-email"
             type="email"
             autoComplete="email"
             inputMode="email"
             required
+            aria-invalid={invalidFields.has("email")}
             value={email}
-            onChange={(event) => setEmail(event.target.value)}
+            onChange={(event) => {
+              setEmail(event.target.value);
+              clearInvalidField("email");
+            }}
           />
         </div>
         <div className="space-y-2">
           <Label htmlFor="sign-up-password">Password</Label>
           <PasswordInput
+            ref={passwordRef}
             id="sign-up-password"
             autoComplete="new-password"
-            minLength={12}
+            minLength={8}
             maxLength={128}
             required
+            aria-invalid={invalidFields.has("password")}
             value={password}
-            onChange={(event) => setPassword(event.target.value)}
+            onChange={(event) => {
+              setPassword(event.target.value);
+              clearInvalidField("password");
+            }}
+          />
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="sign-up-confirmation">Confirm password</Label>
+          <PasswordInput
+            ref={confirmationRef}
+            id="sign-up-confirmation"
+            autoComplete="new-password"
+            minLength={8}
+            maxLength={128}
+            required
+            aria-invalid={invalidFields.has("confirmation")}
+            value={confirmation}
+            onChange={(event) => {
+              setConfirmation(event.target.value);
+              clearInvalidField("confirmation");
+            }}
           />
         </div>
         <Button className="w-full" type="submit" disabled={pending !== null}>
@@ -138,4 +195,10 @@ export function SignUpClient() {
       </p>
     </>
   );
+}
+
+type SignUpField = "email" | "password" | "confirmation";
+
+function isSignUpField(field: PropertyKey | undefined): field is SignUpField {
+  return field === "email" || field === "password" || field === "confirmation";
 }

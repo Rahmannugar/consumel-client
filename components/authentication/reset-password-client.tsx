@@ -67,7 +67,7 @@ export function ResetPasswordClient({ token }: { token: string }) {
           <PasswordInput
             id="new-password"
             autoComplete="new-password"
-            minLength={12}
+            minLength={8}
             maxLength={128}
             required
             value={password}
