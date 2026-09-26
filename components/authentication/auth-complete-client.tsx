@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
+import { Skeleton } from "@/components/ui/skeleton";
 import { authenticatedDestination } from "@/lib/authentication/authentication.service";
 import { useAuthenticationStore } from "@/lib/authentication/authentication.store";
 import type { AuthenticatedAccount } from "@/lib/authentication/authentication.types";
@@ -25,8 +26,11 @@ function CompleteGoogleSignIn({ account }: { account: AuthenticatedAccount }) {
   }, [account, rememberSignInMethod, router]);
 
   return (
-    <p className="text-center text-sm font-medium text-[#697780]" aria-live="polite">
-      Opening your account…
-    </p>
+    <div className="space-y-3" aria-busy="true" aria-live="polite">
+      <p className="sr-only">Opening your account…</p>
+      <Skeleton className="h-9 w-52" aria-hidden="true" />
+      <Skeleton className="h-4 w-72 max-w-full" aria-hidden="true" />
+      <Skeleton className="mt-7 h-11 w-full rounded-lg" aria-hidden="true" />
+    </div>
   );
 }

@@ -9,10 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { authenticationErrorMessage } from "@/lib/authentication/authentication.service";
-import {
-  signUpSchema,
-  validationMessage,
-} from "@/lib/authentication/authentication.validation";
+import { signUpSchema } from "@/lib/authentication/authentication.validation";
 import { useGoogleSignIn, useSignUp } from "@/lib/authentication/useAuthentication";
 import { GoogleIcon } from "./google-icon";
 import { PasswordInput } from "./password-input";
@@ -22,7 +19,7 @@ export function SignUpClient() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmation, setConfirmation] = useState("");
-  const [invalidFields, setInvalidFields] = useState<Set<SignUpField>>(() => new Set());
+  const [fieldErrors, setFieldErrors] = useState<Partial<Record<SignUpField, string[]>>>({});
   const emailRef = useRef<HTMLInputElement>(null);
   const passwordRef = useRef<HTMLInputElement>(null);
   const confirmationRef = useRef<HTMLInputElement>(null);
@@ -51,23 +48,24 @@ export function SignUpClient() {
     event.preventDefault();
     const result = signUpSchema.safeParse({ email, password, confirmation });
     if (!result.success) {
-      const fields = new Set<SignUpField>();
+      const errors: Partial<Record<SignUpField, string[]>> = {};
       for (const issue of result.error.issues) {
         const field = issue.path[0];
-        if (isSignUpField(field)) fields.add(field);
+        if (isSignUpField(field)) {
+          errors[field] = [...(errors[field] ?? []), issue.message];
+        }
       }
-      setInvalidFields(fields);
+      setFieldErrors(errors);
       const firstInvalidField = result.error.issues
         .map((issue) => issue.path[0])
         .find(isSignUpField);
       if (firstInvalidField === "email") emailRef.current?.focus();
       if (firstInvalidField === "password") passwordRef.current?.focus();
       if (firstInvalidField === "confirmation") confirmationRef.current?.focus();
-      toast.warning(validationMessage(result));
       return;
     }
 
-    setInvalidFields(new Set());
+    setFieldErrors({});
     signUpMutation.mutate(
       { email: result.data.email, password: result.data.password },
       {
@@ -85,13 +83,8 @@ export function SignUpClient() {
     });
   }
 
-  function clearInvalidField(field: SignUpField) {
-    setInvalidFields((current) => {
-      if (!current.has(field)) return current;
-      const next = new Set(current);
-      next.delete(field);
-      return next;
-    });
+  function clearFieldError(field: SignUpField) {
+    setFieldErrors((current) => ({ ...current, [field]: undefined }));
   }
 
   return (
@@ -129,13 +122,15 @@ export function SignUpClient() {
             autoComplete="email"
             inputMode="email"
             required
-            aria-invalid={invalidFields.has("email")}
+            aria-invalid={Boolean(fieldErrors.email)}
+            aria-describedby={fieldErrors.email ? "sign-up-email-errors" : undefined}
             value={email}
             onChange={(event) => {
               setEmail(event.target.value);
-              clearInvalidField("email");
+              clearFieldError("email");
             }}
           />
+          <FieldErrors id="sign-up-email-errors" messages={fieldErrors.email} />
         </div>
         <div className="space-y-2">
           <Label htmlFor="sign-up-password">Password</Label>
@@ -146,13 +141,15 @@ export function SignUpClient() {
             minLength={8}
             maxLength={128}
             required
-            aria-invalid={invalidFields.has("password")}
+            aria-invalid={Boolean(fieldErrors.password)}
+            aria-describedby={fieldErrors.password ? "sign-up-password-errors" : undefined}
             value={password}
             onChange={(event) => {
               setPassword(event.target.value);
-              clearInvalidField("password");
+              clearFieldError("password");
             }}
           />
+          <FieldErrors id="sign-up-password-errors" messages={fieldErrors.password} />
         </div>
         <div className="space-y-2">
           <Label htmlFor="sign-up-confirmation">Confirm password</Label>
@@ -163,13 +160,17 @@ export function SignUpClient() {
             minLength={8}
             maxLength={128}
             required
-            aria-invalid={invalidFields.has("confirmation")}
+            aria-invalid={Boolean(fieldErrors.confirmation)}
+            aria-describedby={
+              fieldErrors.confirmation ? "sign-up-confirmation-errors" : undefined
+            }
             value={confirmation}
             onChange={(event) => {
               setConfirmation(event.target.value);
-              clearInvalidField("confirmation");
+              clearFieldError("confirmation");
             }}
           />
+          <FieldErrors id="sign-up-confirmation-errors" messages={fieldErrors.confirmation} />
         </div>
         <Button className="w-full" type="submit" disabled={pending !== null}>
           {pending === "password" ? "Creating account…" : "Create account"}
@@ -201,4 +202,19 @@ type SignUpField = "email" | "password" | "confirmation";
 
 function isSignUpField(field: PropertyKey | undefined): field is SignUpField {
   return field === "email" || field === "password" || field === "confirmation";
+}
+
+function FieldErrors({ id, messages }: { id: string; messages?: string[] }) {
+  if (!messages?.length) return null;
+  return (
+    <ul
+      id={id}
+      className="space-y-1 text-xs font-medium text-red-600 dark:text-red-400"
+      aria-live="polite"
+    >
+      {messages.map((message) => (
+        <li key={message}>{message}</li>
+      ))}
+    </ul>
+  );
 }
