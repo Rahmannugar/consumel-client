@@ -67,6 +67,10 @@ export function authenticatedDestination(account: AuthenticatedAccount) {
   return account.organizations.length === 0 ? "/onboarding" : "/dashboard";
 }
 
+export async function signOut() {
+  await apiRequest("/auth/sign-out", { method: "POST" });
+}
+
 export function authenticationErrorMessage(error: unknown) {
   if (!(error instanceof APIError)) {
     return "Consumel could not complete the request. Try again.";
@@ -104,7 +108,8 @@ function isAccount(value: unknown): value is AuthenticatedAccount {
     typeof value.session.id !== "string" ||
     typeof value.session.createdAt !== "string" ||
     typeof value.session.expiresAt !== "string" ||
-    typeof value.user.id !== "string"
+    typeof value.user.id !== "string" ||
+    typeof value.user.email !== "string"
   ) {
     return false;
   }

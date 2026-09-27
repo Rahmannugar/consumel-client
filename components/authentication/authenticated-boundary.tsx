@@ -13,9 +13,10 @@ import { useAccount } from "@/lib/authentication/useAuthentication";
 
 type AuthenticatedBoundaryProps = {
   children: (account: AuthenticatedAccount) => ReactNode;
+  loading?: ReactNode;
 };
 
-export function AuthenticatedBoundary({ children }: AuthenticatedBoundaryProps) {
+export function AuthenticatedBoundary({ children, loading }: AuthenticatedBoundaryProps) {
   const router = useRouter();
   const account = useAccount();
   const redirect = useCallback(
@@ -25,7 +26,7 @@ export function AuthenticatedBoundary({ children }: AuthenticatedBoundaryProps) 
     [router],
   );
 
-  if (account.isPending) return <AccountLoading />;
+  if (account.isPending) return loading ?? <AccountLoading />;
 
   if (account.isError && !(account.error instanceof APIError && account.error.status === 401)) {
     return (
@@ -46,7 +47,7 @@ export function AuthenticatedBoundary({ children }: AuthenticatedBoundaryProps) 
     <RailBoundary
       rail={authenticatedRail}
       context={{ user: authenticatedAccount?.user ?? null }}
-      fallback={<AccountLoading />}
+      fallback={loading ?? <AccountLoading />}
       onRedirect={redirect}
     >
       {authenticatedAccount ? children(authenticatedAccount) : null}

@@ -8,6 +8,7 @@ export type AuthenticatedAccount = {
   };
   user: {
     id: string;
+    email: string;
   };
   organizations: Array<{
     id: string;

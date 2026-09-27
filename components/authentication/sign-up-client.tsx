@@ -178,7 +178,7 @@ export function SignUpClient() {
       </form>
 
       <p className="mt-6 text-center text-xs leading-5 text-[#697780]">
-        By creating an account, you agree to the{" "}
+        By creating an account, you agree to Consumel&apos;s{" "}
         <Link className="font-semibold text-[#0767c4] hover:underline" href="/terms-of-service">
           Terms
         </Link>{" "}

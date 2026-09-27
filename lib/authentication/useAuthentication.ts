@@ -7,6 +7,7 @@ import {
   resendVerification,
   resetPassword,
   signIn,
+  signOut,
   signUp,
   startGoogleSignIn,
   verifyEmail,
@@ -34,6 +35,13 @@ export function useGoogleSignIn() {
   return useMutation({
     mutationKey: ["authentication", "sign-in", "google"],
     mutationFn: startGoogleSignIn,
+  });
+}
+
+export function useSignOut() {
+  return useMutation({
+    mutationKey: ["authentication", "sign-out"],
+    mutationFn: signOut,
   });
 }
 

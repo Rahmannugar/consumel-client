@@ -1,4 +1,36 @@
 @import "tailwindcss";
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme inline {
+  --color-background: var(--app-background);
+  --color-foreground: var(--app-foreground);
+  --color-card: var(--app-card);
+  --color-card-foreground: var(--app-foreground);
+  --color-popover: var(--app-popover);
+  --color-popover-foreground: var(--app-foreground);
+  --color-primary: var(--app-primary);
+  --color-primary-foreground: var(--app-primary-foreground);
+  --color-secondary: var(--app-secondary);
+  --color-secondary-foreground: var(--app-foreground);
+  --color-muted: var(--app-muted);
+  --color-muted-foreground: var(--app-muted-foreground);
+  --color-accent: var(--app-accent);
+  --color-accent-foreground: var(--app-foreground);
+  --color-destructive: var(--app-destructive);
+  --color-border: var(--app-border);
+  --color-input: var(--app-border);
+  --color-ring: var(--app-ring);
+  --color-sidebar: var(--app-sidebar);
+  --color-sidebar-foreground: var(--app-sidebar-foreground);
+  --color-sidebar-primary: var(--app-sidebar-primary);
+  --color-sidebar-primary-foreground: var(--app-primary-foreground);
+  --color-sidebar-accent: var(--app-sidebar-accent);
+  --color-sidebar-accent-foreground: var(--app-sidebar-foreground);
+  --color-sidebar-selected: var(--app-sidebar-selected);
+  --color-sidebar-selected-foreground: var(--app-sidebar-selected-foreground);
+  --color-sidebar-border: var(--app-sidebar-border);
+  --color-sidebar-ring: var(--app-ring);
+}
 
 :root {
   --blue: #087cec;
@@ -8,6 +40,49 @@
   --line: #dce3e8;
   --paper: #f4f7f9;
   --mono: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+  --app-background: #ffffff;
+  --app-foreground: #111113;
+  --app-card: #ffffff;
+  --app-popover: #ffffff;
+  --app-primary: #087cec;
+  --app-primary-foreground: #ffffff;
+  --app-secondary: #f3f3f5;
+  --app-muted: #f1f1f3;
+  --app-muted-foreground: #71717a;
+  --app-accent: #f0f5fa;
+  --app-destructive: #c92a2a;
+  --app-border: #e2e2e5;
+  --app-ring: #087cec;
+  --app-sidebar: #f7f7f8;
+  --app-sidebar-foreground: #202024;
+  --app-sidebar-primary: #087cec;
+  --app-sidebar-accent: #ececef;
+  --app-sidebar-selected: #087cec;
+  --app-sidebar-selected-foreground: #ffffff;
+  --app-sidebar-border: #dedee2;
+}
+
+.dark {
+  --app-background: #0a0a0b;
+  --app-foreground: #f4f4f5;
+  --app-card: #111113;
+  --app-popover: #151517;
+  --app-primary: #087cec;
+  --app-primary-foreground: #ffffff;
+  --app-secondary: #1b1b1e;
+  --app-muted: #18181b;
+  --app-muted-foreground: #a1a1aa;
+  --app-accent: #17212b;
+  --app-destructive: #ff6b6b;
+  --app-border: #29292d;
+  --app-ring: #55b9ff;
+  --app-sidebar: #0d0d0f;
+  --app-sidebar-foreground: #ededee;
+  --app-sidebar-primary: #087cec;
+  --app-sidebar-accent: #1a1a1d;
+  --app-sidebar-selected: #087cec;
+  --app-sidebar-selected-foreground: #ffffff;
+  --app-sidebar-border: #28282c;
 }
 
 * {
@@ -44,6 +119,53 @@ a:focus-visible {
 ::selection {
   background: rgb(8 124 236 / 22%);
   color: inherit;
+}
+
+.ui-sheet-overlay[data-state="open"] {
+  animation: sheet-overlay-in 180ms ease-out both;
+}
+
+.ui-sheet-overlay[data-state="closed"] {
+  animation: sheet-overlay-out 150ms ease-in both;
+}
+
+.ui-sheet-content[data-side="left"][data-state="open"] {
+  animation: sheet-left-in 220ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.ui-sheet-content[data-side="left"][data-state="closed"] {
+  animation: sheet-left-out 170ms cubic-bezier(0.4, 0, 1, 1) both;
+}
+
+@keyframes sheet-overlay-in {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes sheet-overlay-out {
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes sheet-left-in {
+  from {
+    transform: translateX(-100%);
+  }
+}
+
+@keyframes sheet-left-out {
+  to {
+    transform: translateX(-100%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ui-sheet-overlay[data-state],
+  .ui-sheet-content[data-state] {
+    animation-duration: 1ms;
+  }
 }
 
 .not-found-page::selection,
@@ -820,7 +942,7 @@ html body #stcm-wrapper #stcm-modal .stcm-credit-link {
 .ui-select-trigger svg {
   width: 14px;
   height: 14px;
-  color: #667783;
+  color: currentColor;
 }
 
 .ui-select-content {
@@ -858,6 +980,27 @@ html body #stcm-wrapper #stcm-modal .stcm-credit-link {
 .ui-select-item svg {
   width: 14px;
   height: 14px;
+}
+
+.dark .ui-select-content {
+  background: #111820;
+  border-color: #2a3741;
+  box-shadow: 0 14px 34px rgb(0 0 0 / 32%);
+}
+
+.dark .ui-select-trigger {
+  color: #dce5eb;
+  background: #151e26;
+  border-color: #2a3741;
+}
+
+.dark .ui-select-item {
+  color: #dce5eb;
+}
+
+.dark .ui-select-item[data-highlighted] {
+  color: #69b4ff;
+  background: #112a40;
 }
 
 .meter-picker > div {
