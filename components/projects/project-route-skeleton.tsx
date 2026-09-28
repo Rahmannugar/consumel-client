@@ -30,7 +30,7 @@ export function ProjectRouteSkeleton() {
         </div>
       </aside>
       <div className="md:pl-60">
-        <header className="flex h-14 items-center gap-2 bg-card/90 px-3 sm:px-5">
+        <header className="flex h-14 items-center gap-2 bg-background/90 px-3 sm:px-5">
           <Skeleton className="size-9 md:hidden" />
           <Skeleton className="ml-auto h-9 w-16" />
           <Skeleton className="size-9" />

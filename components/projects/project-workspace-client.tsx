@@ -69,7 +69,13 @@ function ResolvedProjectWorkspace({
       pathname={pathname}
       onProjectChange={(slug, section) =>
         router.push(
-          `/dashboard/${slug}${section === "project-settings" ? "/project-settings" : ""}`,
+          `/dashboard/${slug}${
+            section === "overview"
+              ? ""
+              : section === "customers"
+                ? "/customers"
+                : "/project-settings"
+          }`,
         )
       }
     >
@@ -90,7 +96,10 @@ function WorkspaceShell({
   project: Project;
   projects: Project[];
   pathname: string;
-  onProjectChange: (slug: string, section: "overview" | "project-settings") => void;
+  onProjectChange: (
+    slug: string,
+    section: "overview" | "customers" | "project-settings",
+  ) => void;
   children: ReactNode;
 }) {
   const { environment: environmentName, selectEnvironment } = useProjectEnvironment(project.id);
@@ -99,9 +108,11 @@ function WorkspaceShell({
   );
   if (!environment) return <ProjectRouteSkeleton />;
 
-  const activeSection = pathname.endsWith("/project-settings")
-    ? "project-settings"
-    : "overview";
+  const activeSection = pathname.includes("/customers")
+    ? "customers"
+    : pathname.endsWith("/project-settings")
+      ? "project-settings"
+      : "overview";
 
   return (
     <ProjectWorkspaceContext.Provider value={{ account, project, environment }}>

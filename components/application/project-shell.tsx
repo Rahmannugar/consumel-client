@@ -74,13 +74,13 @@ type ProjectShellProps = {
   onProjectCreated: (projectSlug: string) => void;
   environment: EnvironmentName;
   onEnvironmentChange: (environment: EnvironmentName) => void;
-  activeSection: "overview" | "project-settings";
+  activeSection: "overview" | "customers" | "project-settings";
   children: ReactNode;
 };
 
 const navigation = [
   { label: "Overview", icon: HouseIcon, segment: "", available: true },
-  { label: "Customers", icon: UsersIcon, segment: "customers", available: false },
+  { label: "Customers", icon: UsersIcon, segment: "customers", available: true },
   { label: "Meters", icon: GaugeIcon, segment: "meters", available: false },
   { label: "Events", icon: PulseIcon, segment: "events", available: false },
   {
@@ -260,6 +260,7 @@ function ProjectSidebar({
                       asChild={item.available}
                       isActive={
                         (activeSection === "overview" && item.label === "Overview") ||
+                        (activeSection === "customers" && item.label === "Customers") ||
                         (activeSection === "project-settings" &&
                           item.label === "Project Settings")
                       }
@@ -274,6 +275,7 @@ function ProjectSidebar({
                           <Icon
                             weight={
                               (activeSection === "overview" && item.label === "Overview") ||
+                              (activeSection === "customers" && item.label === "Customers") ||
                               (activeSection === "project-settings" &&
                                 item.label === "Project Settings")
                                 ? "fill"
@@ -515,7 +517,7 @@ function ApplicationTopbar({
 }) {
   return (
     <header
-      className={`sticky z-20 flex h-14 items-center gap-2 bg-card/90 px-3 backdrop-blur-xl sm:px-5 ${
+      className={`sticky z-20 flex h-14 items-center gap-2 bg-background/90 px-3 backdrop-blur-xl sm:px-5 ${
         hasSandboxBanner ? "top-10" : "top-0"
       }`}
     >
