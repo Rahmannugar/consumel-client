@@ -921,24 +921,6 @@ html body #stcm-wrapper #stcm-modal .stcm-credit-link {
   font-weight: 450;
 }
 
-.ui-select-trigger {
-  display: inline-flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-  min-width: 0;
-  padding: 0 11px;
-  color: #183040;
-  background: white;
-  border: 1px solid #cbd5dc;
-  border-radius: 8px;
-  box-shadow: 0 1px 2px rgb(18 38 52 / 4%);
-  font-family: var(--font-onest), sans-serif;
-  font-size: 12px;
-  font-weight: 600;
-  outline: none;
-}
-
 .ui-select-trigger svg {
   width: 14px;
   height: 14px;
@@ -986,12 +968,6 @@ html body #stcm-wrapper #stcm-modal .stcm-credit-link {
   background: #111820;
   border-color: #2a3741;
   box-shadow: 0 14px 34px rgb(0 0 0 / 32%);
-}
-
-.dark .ui-select-trigger {
-  color: #dce5eb;
-  background: #151e26;
-  border-color: #2a3741;
 }
 
 .dark .ui-select-item {

@@ -74,14 +74,14 @@ type ProjectShellProps = {
   onProjectCreated: (projectSlug: string) => void;
   environment: EnvironmentName;
   onEnvironmentChange: (environment: EnvironmentName) => void;
-  activeSection: "overview" | "customers" | "project-settings";
+  activeSection: "overview" | "customers" | "meters" | "project-settings";
   children: ReactNode;
 };
 
 const navigation = [
   { label: "Overview", icon: HouseIcon, segment: "", available: true },
   { label: "Customers", icon: UsersIcon, segment: "customers", available: true },
-  { label: "Meters", icon: GaugeIcon, segment: "meters", available: false },
+  { label: "Meters", icon: GaugeIcon, segment: "meters", available: true },
   { label: "Events", icon: PulseIcon, segment: "events", available: false },
   {
     label: "Payment Providers",
@@ -261,6 +261,7 @@ function ProjectSidebar({
                       isActive={
                         (activeSection === "overview" && item.label === "Overview") ||
                         (activeSection === "customers" && item.label === "Customers") ||
+                        (activeSection === "meters" && item.label === "Meters") ||
                         (activeSection === "project-settings" &&
                           item.label === "Project Settings")
                       }
@@ -276,6 +277,7 @@ function ProjectSidebar({
                             weight={
                               (activeSection === "overview" && item.label === "Overview") ||
                               (activeSection === "customers" && item.label === "Customers") ||
+                              (activeSection === "meters" && item.label === "Meters") ||
                               (activeSection === "project-settings" &&
                                 item.label === "Project Settings")
                                 ? "fill"
