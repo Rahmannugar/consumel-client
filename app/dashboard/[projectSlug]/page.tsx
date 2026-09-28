@@ -6,11 +6,6 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 };
 
-export default async function ProjectOverviewPage({
-  params,
-}: {
-  params: Promise<{ projectSlug: string }>;
-}) {
-  const { projectSlug } = await params;
-  return <ProjectOverviewClient projectSlug={projectSlug} />;
+export default function ProjectOverviewPage() {
+  return <ProjectOverviewClient />;
 }

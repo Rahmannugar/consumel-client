@@ -17,7 +17,7 @@ const buttonVariants = cva(
       },
       size: {
         default: "min-h-11 px-4",
-        compact: "min-h-9 px-3",
+        compact: "min-h-9 px-3 text-xs font-medium",
       },
     },
     defaultVariants: {

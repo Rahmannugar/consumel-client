@@ -13,6 +13,7 @@ import {
   HouseIcon,
   KeyIcon,
   PlugsConnectedIcon,
+  PlusIcon,
   PulseIcon,
   SidebarSimpleIcon,
   UsersIcon,
@@ -20,10 +21,12 @@ import {
 } from "@phosphor-icons/react";
 import Image from "next/image";
 import Link from "next/link";
-import type { CSSProperties, MouseEvent, ReactNode } from "react";
+import type { CSSProperties, FormEvent, MouseEvent, ReactNode } from "react";
+import { useRef, useState } from "react";
 import { AccountMenu } from "@/components/application/account-menu";
 import { ThemeToggle } from "@/components/application/theme-toggle";
 import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -32,6 +35,8 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   Sidebar,
   SidebarContent,
@@ -54,7 +59,10 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import type { AuthenticatedAccount } from "@/lib/authentication/authentication.types";
+import { createProjectSchema } from "@/lib/projects/project.validation";
+import { projectCreationErrorMessage } from "@/lib/projects/projects.service";
 import type { Project } from "@/lib/projects/projects.types";
+import { useCreateProject } from "@/lib/projects/useCreateProject";
 
 type EnvironmentName = "sandbox" | "live";
 
@@ -63,8 +71,10 @@ type ProjectShellProps = {
   project: Project;
   projects: Project[];
   onProjectChange: (projectSlug: string) => void;
+  onProjectCreated: (projectSlug: string) => void;
   environment: EnvironmentName;
   onEnvironmentChange: (environment: EnvironmentName) => void;
+  activeSection: "overview" | "project-settings";
   children: ReactNode;
 };
 
@@ -83,7 +93,7 @@ const navigation = [
     label: "Project Settings",
     icon: GearIcon,
     segment: "project-settings",
-    available: false,
+    available: true,
   },
 ] as const;
 
@@ -92,37 +102,75 @@ export function ProjectShell({
   project,
   projects,
   onProjectChange,
+  onProjectCreated,
   environment,
   onEnvironmentChange,
+  activeSection,
   children,
 }: ProjectShellProps) {
   const organizationName = account.organizations[0]?.name ?? project.organizationName;
+  const showingSandbox = environment === "sandbox";
 
   return (
     <TooltipProvider>
-      <SidebarProvider
-        className="application-shell bg-background text-foreground"
-        style={
-          {
-            "--sidebar-width": "15rem",
-            "--sidebar-width-icon": "3.5rem",
-          } as CSSProperties
-        }
+      <div
+        className={`application-shell min-h-svh bg-background text-foreground ${
+          showingSandbox ? "pt-10" : ""
+        }`}
       >
-        <ProjectSidebar
-          project={project}
-          projects={projects}
-          organizationName={organizationName}
-          environment={environment}
-          onProjectChange={onProjectChange}
-          onEnvironmentChange={onEnvironmentChange}
-        />
-        <SidebarInset className="min-w-0 bg-background">
-          <ApplicationTopbar account={account} />
-          <main className="min-h-[calc(100svh-56px)]">{children}</main>
-        </SidebarInset>
-      </SidebarProvider>
+        {showingSandbox ? (
+          <SandboxBanner onSwitchToLive={() => onEnvironmentChange("live")} />
+        ) : null}
+        <SidebarProvider
+          style={
+            {
+              "--sidebar-width": "15rem",
+              "--sidebar-width-icon": "3.5rem",
+              minHeight: showingSandbox ? "calc(100svh - 2.5rem)" : undefined,
+            } as CSSProperties
+          }
+        >
+          <ProjectSidebar
+            project={project}
+            projects={projects}
+            organizationName={organizationName}
+            environment={environment}
+            onProjectChange={onProjectChange}
+            onProjectCreated={onProjectCreated}
+            onEnvironmentChange={onEnvironmentChange}
+            activeSection={activeSection}
+          />
+          <SidebarInset className="min-w-0 bg-background">
+            <ApplicationTopbar account={account} hasSandboxBanner={showingSandbox} />
+            <main
+              className={
+                showingSandbox ? "min-h-[calc(100svh-6rem)]" : "min-h-[calc(100svh-3.5rem)]"
+              }
+            >
+              {children}
+            </main>
+          </SidebarInset>
+        </SidebarProvider>
+      </div>
     </TooltipProvider>
+  );
+}
+
+function SandboxBanner({ onSwitchToLive }: { onSwitchToLive: () => void }) {
+  return (
+    <div className="fixed inset-x-0 top-0 z-50 flex h-10 items-center bg-[#0b2942] px-3 text-white shadow-[0_1px_0_rgb(255_255_255/0.1)] sm:px-5">
+      <span className="text-xs font-semibold">Sandbox</span>
+      <span className="hidden flex-1 text-center text-xs text-white/75 sm:block">
+        Test data only. Nothing here affects Live.
+      </span>
+      <button
+        type="button"
+        className="ml-auto h-7 rounded-full bg-primary px-4 text-xs leading-none font-medium text-primary-foreground shadow-[inset_0_0_0_1px_rgb(255_255_255/0.14),0_1px_2px_rgb(0_0_0/0.16)] transition-[background-color,transform] hover:bg-[#1688f3] active:translate-y-px focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+        onClick={onSwitchToLive}
+      >
+        Switch to Live
+      </button>
+    </div>
   );
 }
 
@@ -132,14 +180,18 @@ function ProjectSidebar({
   organizationName,
   environment,
   onProjectChange,
+  onProjectCreated,
   onEnvironmentChange,
+  activeSection,
 }: {
   project: Project;
   projects: Project[];
   organizationName: string;
   environment: EnvironmentName;
   onProjectChange: (projectSlug: string) => void;
+  onProjectCreated: (projectSlug: string) => void;
   onEnvironmentChange: (environment: EnvironmentName) => void;
+  activeSection: ProjectShellProps["activeSection"];
 }) {
   const { isMobile, setOpenMobile } = useSidebar();
 
@@ -152,7 +204,14 @@ function ProjectSidebar({
   }
 
   return (
-    <Sidebar collapsible="icon" className="border-sidebar-border">
+    <Sidebar
+      collapsible="icon"
+      className={
+        environment === "sandbox"
+          ? "top-10 h-[calc(100svh-2.5rem)] border-sidebar-border"
+          : "border-sidebar-border"
+      }
+    >
       <SidebarHeader className="relative justify-center p-2">
         <div className="flex min-w-0 items-center gap-2">
           <ProjectMenu
@@ -161,6 +220,10 @@ function ProjectSidebar({
             environment={environment}
             onProjectChange={(slug) => {
               onProjectChange(slug);
+              closeMobileSidebar();
+            }}
+            onProjectCreated={(slug) => {
+              onProjectCreated(slug);
               closeMobileSidebar();
             }}
             onEnvironmentChange={(nextEnvironment) => {
@@ -195,7 +258,11 @@ function ProjectSidebar({
                   <SidebarMenuItem key={item.label}>
                     <SidebarMenuButton
                       asChild={item.available}
-                      isActive={item.label === "Overview"}
+                      isActive={
+                        (activeSection === "overview" && item.label === "Overview") ||
+                        (activeSection === "project-settings" &&
+                          item.label === "Project Settings")
+                      }
                       tooltip={
                         item.available ? item.label : `${item.label} is not available yet`
                       }
@@ -204,7 +271,15 @@ function ProjectSidebar({
                     >
                       {item.available ? (
                         <Link href={href} onClick={closeMobileSidebar}>
-                          <Icon weight={item.label === "Overview" ? "fill" : "regular"} />
+                          <Icon
+                            weight={
+                              (activeSection === "overview" && item.label === "Overview") ||
+                              (activeSection === "project-settings" &&
+                                item.label === "Project Settings")
+                                ? "fill"
+                                : "regular"
+                            }
+                          />
                           <span>{item.label}</span>
                         </Link>
                       ) : (
@@ -239,72 +314,211 @@ function ProjectMenu({
   projects,
   environment,
   onProjectChange,
+  onProjectCreated,
   onEnvironmentChange,
 }: {
   project: Project;
   projects: Project[];
   environment: EnvironmentName;
   onProjectChange: (projectSlug: string) => void;
+  onProjectCreated: (projectSlug: string) => void;
   onEnvironmentChange: (environment: EnvironmentName) => void;
 }) {
   const otherEnvironment = environment === "sandbox" ? "live" : "sandbox";
+  const [createOpen, setCreateOpen] = useState(false);
 
   return (
-    <SidebarMenu className="min-w-0 flex-1">
-      <SidebarMenuItem>
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <SidebarMenuButton
-              size="lg"
-              className="h-10 rounded-lg border border-sidebar-border bg-sidebar px-2 hover:border-sidebar-border hover:bg-sidebar-accent data-open:border-primary/35 data-open:bg-sidebar-accent group-data-[collapsible=icon]:size-9 group-data-[collapsible=icon]:border-transparent group-data-[collapsible=icon]:bg-transparent group-data-[collapsible=icon]:p-0"
-              aria-label={`Open ${project.name} project menu`}
-            >
-              <ProjectMark />
-              <span className="min-w-0 flex-1 group-data-[collapsible=icon]:hidden">
-                <span className="block truncate text-[13px] font-semibold">{project.name}</span>
-                <span className="block truncate text-[10px] capitalize text-muted-foreground">
-                  {environment}
-                </span>
-              </span>
-              <CaretUpDownIcon className="ml-auto size-3.5 shrink-0 text-muted-foreground group-data-[collapsible=icon]:hidden" />
-            </SidebarMenuButton>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="start" sideOffset={8} className="w-64">
-            <DropdownMenuLabel>Projects</DropdownMenuLabel>
-            {projects.map((candidate) => (
-              <DropdownMenuItem
-                key={candidate.id}
-                className="min-h-9 px-2.5"
-                onSelect={() => onProjectChange(candidate.slug)}
+    <>
+      <SidebarMenu className="min-w-0 flex-1">
+        <SidebarMenuItem>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <SidebarMenuButton
+                size="lg"
+                className="h-10 rounded-lg border border-sidebar-border bg-sidebar px-2 hover:border-sidebar-border hover:bg-sidebar-accent data-open:border-primary/35 data-open:bg-sidebar-accent group-data-[collapsible=icon]:size-9 group-data-[collapsible=icon]:border-transparent group-data-[collapsible=icon]:bg-transparent group-data-[collapsible=icon]:p-0"
+                aria-label={`Open ${project.name} project menu`}
               >
-                <CubeIcon className="text-muted-foreground" />
-                <span className="min-w-0 flex-1 truncate">{candidate.name}</span>
-                {candidate.id === project.id ? <CheckIcon className="text-primary" /> : null}
-              </DropdownMenuItem>
-            ))}
-            <DropdownMenuSeparator />
-            <DropdownMenuItem
-              className="min-h-10 px-2.5"
-              onSelect={() => onEnvironmentChange(otherEnvironment)}
-            >
-              <KeyIcon className="text-muted-foreground" />
-              <span className="min-w-0 flex-1">
-                <span className="block">Switch to {otherEnvironment}</span>
-                <span className="block text-[11px] text-muted-foreground">
-                  {otherEnvironment === "sandbox" ? "Test data" : "Production data"}
+                <ProjectMark />
+                <span className="min-w-0 flex-1 group-data-[collapsible=icon]:hidden">
+                  <span className="block truncate text-[13px] font-semibold">
+                    {project.name}
+                  </span>
+                  <span className="block truncate text-[10px] capitalize text-muted-foreground">
+                    {environment}
+                  </span>
                 </span>
-              </span>
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      </SidebarMenuItem>
-    </SidebarMenu>
+                <CaretUpDownIcon className="ml-auto size-3.5 shrink-0 text-muted-foreground group-data-[collapsible=icon]:hidden" />
+              </SidebarMenuButton>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="start" sideOffset={8} className="w-64">
+              <DropdownMenuLabel>Projects</DropdownMenuLabel>
+              {projects.map((candidate) => (
+                <DropdownMenuItem
+                  key={candidate.id}
+                  className="min-h-9 px-2.5"
+                  onSelect={() => onProjectChange(candidate.slug)}
+                >
+                  <CubeIcon className="text-muted-foreground" />
+                  <span className="min-w-0 flex-1 truncate">{candidate.name}</span>
+                  {candidate.id === project.id ? <CheckIcon className="text-primary" /> : null}
+                </DropdownMenuItem>
+              ))}
+              <DropdownMenuSeparator />
+              <DropdownMenuItem className="min-h-9 px-2.5" onSelect={() => setCreateOpen(true)}>
+                <PlusIcon className="text-muted-foreground" />
+                <span>Create project</span>
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                className="min-h-10 px-2.5"
+                onSelect={() => onEnvironmentChange(otherEnvironment)}
+              >
+                <KeyIcon className="text-muted-foreground" />
+                <span className="min-w-0 flex-1">
+                  <span className="block">Switch to {otherEnvironment}</span>
+                  <span className="block text-[11px] text-muted-foreground">
+                    {otherEnvironment === "sandbox" ? "Test data" : "Production data"}
+                  </span>
+                </span>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </SidebarMenuItem>
+      </SidebarMenu>
+      <CreateProjectDialog
+        open={createOpen}
+        onOpenChange={setCreateOpen}
+        onCreated={onProjectCreated}
+      />
+    </>
   );
 }
 
-function ApplicationTopbar({ account }: { account: AuthenticatedAccount }) {
+function CreateProjectDialog({
+  open,
+  onOpenChange,
+  onCreated,
+}: {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  onCreated: (projectSlug: string) => void;
+}) {
+  const createProject = useCreateProject();
+  const [name, setName] = useState("");
+  const [fieldError, setFieldError] = useState<string>();
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  function changeOpen(nextOpen: boolean) {
+    if (createProject.isPending) return;
+    onOpenChange(nextOpen);
+    if (!nextOpen) {
+      setName("");
+      setFieldError(undefined);
+      createProject.reset();
+    }
+  }
+
+  function submit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (createProject.isPending) return;
+
+    const result = createProjectSchema.safeParse({ name });
+    if (!result.success) {
+      setFieldError(result.error.issues[0]?.message ?? "Enter a valid project name.");
+      inputRef.current?.focus();
+      return;
+    }
+
+    setFieldError(undefined);
+    createProject.mutate(result.data, {
+      onSuccess: (project) => {
+        onOpenChange(false);
+        setName("");
+        onCreated(project.slug);
+      },
+    });
+  }
+
   return (
-    <header className="sticky top-0 z-20 flex h-14 items-center gap-2 bg-card/90 px-3 backdrop-blur-xl sm:px-5">
+    <Dialog open={open} onOpenChange={changeOpen}>
+      <DialogContent
+        onOpenAutoFocus={(event) => {
+          event.preventDefault();
+          inputRef.current?.focus();
+        }}
+      >
+        <DialogTitle>Create a project</DialogTitle>
+        <DialogDescription>
+          Use the product or service name your team will recognize. Consumel creates separate
+          Sandbox and Live environments automatically.
+        </DialogDescription>
+        <form className="mt-6 space-y-5" noValidate onSubmit={submit}>
+          <div className="space-y-2">
+            <Label htmlFor="new-project-name">Project name</Label>
+            <Input
+              ref={inputRef}
+              id="new-project-name"
+              maxLength={120}
+              autoComplete="off"
+              placeholder="Usage Service"
+              value={name}
+              aria-invalid={Boolean(fieldError)}
+              aria-describedby="new-project-name-help"
+              disabled={createProject.isPending}
+              onChange={(event) => {
+                setName(event.target.value);
+                setFieldError(undefined);
+                createProject.reset();
+              }}
+            />
+            <p
+              id="new-project-name-help"
+              className={
+                fieldError || createProject.isError
+                  ? "text-xs font-medium text-destructive"
+                  : "text-xs leading-5 text-muted-foreground"
+              }
+              aria-live="polite"
+            >
+              {fieldError ??
+                (createProject.isError
+                  ? projectCreationErrorMessage(createProject.error)
+                  : "Project names must be unique in your organization.")}
+            </p>
+          </div>
+          <div className="flex justify-end gap-2">
+            <Button
+              type="button"
+              variant="quiet"
+              size="compact"
+              disabled={createProject.isPending}
+              onClick={() => changeOpen(false)}
+            >
+              Cancel
+            </Button>
+            <Button type="submit" size="compact" disabled={createProject.isPending}>
+              {createProject.isPending ? "Creating…" : "Create project"}
+            </Button>
+          </div>
+        </form>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function ApplicationTopbar({
+  account,
+  hasSandboxBanner,
+}: {
+  account: AuthenticatedAccount;
+  hasSandboxBanner: boolean;
+}) {
+  return (
+    <header
+      className={`sticky z-20 flex h-14 items-center gap-2 bg-card/90 px-3 backdrop-blur-xl sm:px-5 ${
+        hasSandboxBanner ? "top-10" : "top-0"
+      }`}
+    >
       <SidebarTrigger
         className="h-9 min-h-9 w-auto gap-0 border-transparent bg-transparent px-1 hover:border-transparent hover:bg-transparent md:hidden"
         aria-label="Open navigation"

@@ -8,9 +8,9 @@ export function ProjectRouteSkeleton() {
       aria-busy="true"
       aria-label="Loading project"
     >
-      <aside className="fixed inset-y-0 left-0 hidden w-60 border-r border-sidebar-border bg-sidebar md:block">
-        <div className="border-b border-sidebar-border p-2.5">
-          <div className="flex h-12 items-center gap-2.5 rounded-[10px] border border-sidebar-border bg-card px-2.5">
+      <aside className="fixed inset-y-0 left-0 hidden w-60 bg-sidebar md:block">
+        <div className="p-2.5">
+          <div className="flex h-12 items-center gap-2.5 rounded-[10px] border border-sidebar-border bg-sidebar px-2.5">
             <Skeleton className="size-7" />
             <div className="flex-1 space-y-1.5">
               <Skeleton className="h-3 w-24" />
@@ -30,7 +30,7 @@ export function ProjectRouteSkeleton() {
         </div>
       </aside>
       <div className="md:pl-60">
-        <header className="flex h-14 items-center gap-2 border-b border-border bg-card/90 px-3 sm:px-5">
+        <header className="flex h-14 items-center gap-2 bg-card/90 px-3 sm:px-5">
           <Skeleton className="size-9 md:hidden" />
           <Skeleton className="ml-auto h-9 w-16" />
           <Skeleton className="size-9" />
@@ -39,7 +39,6 @@ export function ProjectRouteSkeleton() {
         </header>
         <main className="mx-auto max-w-[1160px] space-y-5 px-5 py-8 sm:px-8 sm:py-11">
           <div className="space-y-2">
-            <Skeleton className="h-3 w-16" />
             <Skeleton className="h-9 w-32" />
           </div>
           <Skeleton className="h-44 w-full rounded-[10px]" />

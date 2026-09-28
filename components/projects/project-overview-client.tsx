@@ -1,196 +1,175 @@
 "use client";
 
-import { ArrowLeftIcon, CheckCircleIcon, CircleIcon, KeyIcon } from "@phosphor-icons/react";
+import { ArrowRightIcon, KeyIcon } from "@phosphor-icons/react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { ApplicationThemeProvider } from "@/components/application/application-theme";
-import { ProjectShell } from "@/components/application/project-shell";
-import { AuthenticatedBoundary } from "@/components/authentication/authenticated-boundary";
-import { ProjectRouteSkeleton } from "@/components/projects/project-route-skeleton";
+import { useProjectWorkspace } from "@/components/projects/project-workspace-client";
 import { Button } from "@/components/ui/button";
-import type { AuthenticatedAccount } from "@/lib/authentication/authentication.types";
-import type { Project, ProjectEnvironment } from "@/lib/projects/projects.types";
-import { useProjectEnvironment } from "@/lib/projects/useProjectEnvironment";
-import { useProjects } from "@/lib/projects/useProjects";
+import { Skeleton } from "@/components/ui/skeleton";
+import { useProjectAPIKey } from "@/lib/projects/useProjectAPIKey";
 
-export function ProjectOverviewClient({ projectSlug }: { projectSlug: string }) {
-  return (
-    <ApplicationThemeProvider>
-      <AuthenticatedBoundary loading={<ProjectRouteSkeleton />}>
-        {(account) => <ProjectOverview account={account} projectSlug={projectSlug} />}
-      </AuthenticatedBoundary>
-    </ApplicationThemeProvider>
-  );
-}
-
-function ProjectOverview({
-  account,
-  projectSlug,
-}: {
-  account: AuthenticatedAccount;
-  projectSlug: string;
-}) {
-  const router = useRouter();
-  const projects = useProjects();
-
-  if (projects.isPending) return <ProjectRouteSkeleton />;
-  if (projects.isError) return <ProjectLoadError onRetry={() => projects.refetch()} />;
-
-  const project = projects.data.projects.find((candidate) => candidate.slug === projectSlug);
-  if (!project) return <ProjectUnavailable />;
+export function ProjectOverviewClient() {
+  const { project, environment } = useProjectWorkspace();
+  const keyStatus = useProjectAPIKey(project.id, environment.name);
+  const inactive = environment.activatedAt === null;
+  const hasKey = keyStatus.data?.apiKey !== null && keyStatus.data?.apiKey !== undefined;
+  const activeKey = keyStatus.data?.apiKey ?? null;
+  const setupComplete = !inactive && activeKey !== null;
+  const totalSteps = environment.name === "live" ? 3 : 2;
+  const completedSteps =
+    environment.name === "live"
+      ? 1 + (inactive ? 0 : 1) + (hasKey ? 1 : 0)
+      : 1 + (hasKey ? 1 : 0);
+  const progress = `${(completedSteps / totalSteps) * 100}%`;
+  const settingsHref = `/dashboard/${project.slug}/project-settings`;
 
   return (
-    <ResolvedProjectOverview
-      account={account}
-      project={project}
-      projects={projects.data.projects}
-      onProjectChange={(slug) => router.push(`/dashboard/${slug}`)}
-    />
-  );
-}
+    <div className="mx-auto max-w-[1160px] px-5 py-8 sm:px-8 sm:py-11">
+      <h1 className="font-[family-name:var(--font-bricolage-grotesque)] text-[28px] font-semibold tracking-[-0.04em]">
+        Overview
+      </h1>
 
-function ResolvedProjectOverview({
-  account,
-  project,
-  projects,
-  onProjectChange,
-}: {
-  account: AuthenticatedAccount;
-  project: Project;
-  projects: Project[];
-  onProjectChange: (slug: string) => void;
-}) {
-  const { environment: environmentName, selectEnvironment } = useProjectEnvironment(project.id);
-
-  const environment = project.environments.find(
-    (candidate) => candidate.name === environmentName,
-  );
-  if (!environment) return <ProjectRouteSkeleton />;
-
-  return (
-    <ProjectShell
-      account={account}
-      project={project}
-      projects={projects}
-      onProjectChange={onProjectChange}
-      environment={environmentName}
-      onEnvironmentChange={selectEnvironment}
-    >
-      <div className="mx-auto max-w-[1160px] px-5 py-8 sm:px-8 sm:py-11">
-        <header>
-          <p className="text-[11px] font-semibold tracking-[0.12em] text-primary uppercase">
-            {environment.name}
-          </p>
-          <h1 className="mt-1 font-[family-name:var(--font-bricolage-grotesque)] text-[28px] font-semibold tracking-[-0.04em]">
-            Overview
-          </h1>
-        </header>
-
-        <section className="mt-7 overflow-hidden rounded-[10px] border border-border bg-card">
-          <div className="flex items-center gap-3 border-b border-border px-5 py-4">
-            <span className="h-4 w-1 rounded-full bg-primary" aria-hidden="true" />
-            <h2 className="text-sm font-semibold capitalize">{environment.name}</h2>
-          </div>
-          <dl className="divide-y divide-border">
-            <EnvironmentDetail environment={environment} />
-            <div className="flex items-center gap-4 px-5 py-4">
-              <span className="grid size-8 shrink-0 place-items-center rounded-lg bg-secondary text-muted-foreground">
-                <KeyIcon className="size-4" />
-              </span>
-              <div className="min-w-0 flex-1">
-                <dt className="text-sm font-medium">API access</dt>
-                <dd className="mt-0.5 text-xs text-muted-foreground">
-                  Create a key when you are ready to connect this environment.
-                </dd>
-              </div>
-              <span className="shrink-0 text-xs font-medium text-muted-foreground">
-                Not configured
-              </span>
-            </div>
-          </dl>
-        </section>
-
-        <section className="mt-5 overflow-hidden rounded-[10px] border border-border bg-card">
-          <div className="border-b border-border px-5 py-4">
-            <h2 className="text-sm font-semibold">Recent activity</h2>
-          </div>
-          <div className="grid min-h-44 place-items-center px-5 py-10 text-center">
-            <div>
-              <p className="text-sm font-medium">No activity yet</p>
-              <p className="mt-1.5 text-xs leading-5 text-muted-foreground">
-                Activity from this environment will appear here.
+      {keyStatus.isPending && !inactive ? (
+        <SetupPanelSkeleton />
+      ) : setupComplete ? (
+        <APIAccessSummary apiKey={activeKey} settingsHref={settingsHref} />
+      ) : (
+        <section className="mt-7 overflow-hidden rounded-xl border border-border bg-card">
+          <div className="grid lg:grid-cols-[minmax(0,1fr)_360px]">
+            <div className="px-5 py-6 sm:px-7 sm:py-7">
+              <p className="text-sm font-semibold">Finish project setup</p>
+              <p className="mt-2 max-w-xl text-sm leading-6 text-muted-foreground">
+                {inactive
+                  ? "Activate Live and create its API key before sending production usage."
+                  : `Create an API key before sending ${environment.name === "sandbox" ? "test" : "production"} usage.`}
               </p>
+              <div className="mt-6 flex items-end justify-between gap-4">
+                <span className="text-xs font-medium text-foreground">Setup progress</span>
+                <span className="text-xs text-muted-foreground">
+                  {completedSteps} of {totalSteps} required steps complete
+                </span>
+              </div>
+              <div className="mt-2.5 h-1.5 overflow-hidden rounded-full bg-secondary">
+                <div
+                  className="h-full rounded-full bg-primary transition-[width]"
+                  style={{ width: progress }}
+                />
+              </div>
+            </div>
+
+            <div className="border-t border-border px-5 py-6 sm:px-7 lg:border-t-0 lg:border-l">
+              <p className="text-xs font-medium text-muted-foreground">Up next</p>
+              <p className="mt-2 text-sm font-semibold">
+                {inactive
+                  ? "Activate Live"
+                  : `Create a ${environment.name === "sandbox" ? "Sandbox" : "Live"} API key`}
+              </p>
+              <p className="mt-1 text-xs leading-5 text-muted-foreground">
+                {inactive
+                  ? "Live stays isolated until you activate it."
+                  : `Generate a key for authenticated ${environment.name === "sandbox" ? "Sandbox" : "Live"} requests.`}
+              </p>
+              <Button asChild className="mt-5" size="compact" variant="primary">
+                <Link href={settingsHref}>
+                  Continue setup
+                  <ArrowRightIcon />
+                </Link>
+              </Button>
             </div>
           </div>
         </section>
-      </div>
-    </ProjectShell>
-  );
-}
+      )}
 
-function EnvironmentDetail({ environment }: { environment: ProjectEnvironment }) {
-  const active = environment.activatedAt !== null;
-
-  return (
-    <div className="flex items-center gap-4 px-5 py-4">
-      <span
-        className={`grid size-8 shrink-0 place-items-center rounded-lg ${
-          active
-            ? "bg-emerald-50 text-emerald-700 dark:bg-emerald-950/45 dark:text-emerald-300"
-            : "bg-secondary text-muted-foreground"
-        }`}
-      >
-        {active ? (
-          <CheckCircleIcon className="size-4" weight="fill" />
-        ) : (
-          <CircleIcon className="size-4" weight="fill" />
-        )}
-      </span>
-      <div className="min-w-0 flex-1">
-        <dt className="text-sm font-medium">Environment status</dt>
-        <dd className="mt-0.5 text-xs text-muted-foreground">
-          {active
-            ? environment.name === "sandbox"
-              ? "Test configuration and usage stay separate from Live."
-              : "Production configuration and usage stay separate from Sandbox."
-            : "Live has not been activated."}
-        </dd>
-      </div>
-      <span className="shrink-0 text-xs font-medium text-muted-foreground">
-        {active ? "Available" : "Not activated"}
-      </span>
+      <section className="mt-6 overflow-hidden rounded-xl border border-border bg-card">
+        <div className="border-b border-border px-5 py-4 sm:px-6">
+          <h2 className="text-sm font-semibold">Activity</h2>
+        </div>
+        <div className="grid min-h-52 place-items-center px-5 py-10 text-center">
+          <div>
+            <p className="text-sm font-medium">No activity yet</p>
+            <p className="mt-1.5 text-xs leading-5 text-muted-foreground">
+              Requests made to this environment will appear here.
+            </p>
+          </div>
+        </div>
+      </section>
     </div>
   );
 }
 
-function ProjectLoadError({ onRetry }: { onRetry: () => void }) {
+function APIAccessSummary({
+  apiKey,
+  settingsHref,
+}: {
+  apiKey: NonNullable<ReturnType<typeof useProjectAPIKey>["data"]>["apiKey"];
+  settingsHref: string;
+}) {
+  if (!apiKey) return null;
+
   return (
-    <main className="grid min-h-svh place-items-center bg-background px-5 text-foreground">
-      <div className="text-center">
-        <h1 className="text-xl font-semibold">Project could not be loaded</h1>
-        <Button className="mt-5" onClick={onRetry}>
-          Try again
-        </Button>
+    <section className="mt-7 rounded-xl border border-border bg-card px-5 py-5 sm:px-6">
+      <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
+        <div className="flex min-w-0 items-start gap-3.5">
+          <KeyIcon className="mt-0.5 size-5 shrink-0 text-muted-foreground" />
+          <div className="min-w-0">
+            <div className="flex flex-wrap items-center gap-2.5">
+              <h2 className="text-sm font-semibold">API access</h2>
+              <span className="inline-flex items-center gap-1.5 text-xs font-medium text-emerald-700 dark:text-emerald-400">
+                <span className="size-1.5 rounded-full bg-current" />
+                Active
+              </span>
+            </div>
+            <code className="mt-2 block truncate font-mono text-xs text-muted-foreground">
+              {apiKey.prefix}••••{apiKey.lastFour}
+            </code>
+          </div>
+        </div>
+
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:gap-8">
+          <dl className="grid grid-cols-2 gap-x-8 text-xs">
+            <div>
+              <dt className="text-muted-foreground">Created</dt>
+              <dd className="mt-1 font-medium">{formatDate(apiKey.createdAt)}</dd>
+            </div>
+            <div>
+              <dt className="text-muted-foreground">Last used</dt>
+              <dd className="mt-1 font-medium">
+                {apiKey.lastUsedAt ? formatDate(apiKey.lastUsedAt) : "Never"}
+              </dd>
+            </div>
+          </dl>
+          <Button asChild size="compact" variant="secondary">
+            <Link href={settingsHref}>
+              Manage API key
+              <ArrowRightIcon />
+            </Link>
+          </Button>
+        </div>
       </div>
-    </main>
+    </section>
   );
 }
 
-function ProjectUnavailable() {
+function formatDate(value: string) {
+  return new Intl.DateTimeFormat(undefined, {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+  }).format(new Date(value));
+}
+
+function SetupPanelSkeleton() {
   return (
-    <main className="grid min-h-svh place-items-center bg-background px-5 text-foreground">
-      <div className="text-center">
-        <p className="text-xs font-bold uppercase tracking-[0.12em] text-[#087cec]">
-          Project unavailable
-        </p>
-        <h1 className="mt-3 text-2xl font-semibold">You don’t have access to this project.</h1>
-        <Button asChild className="mt-6">
-          <Link href="/dashboard">
-            <ArrowLeftIcon />
-            View my projects
-          </Link>
-        </Button>
+    <section className="mt-7 grid overflow-hidden rounded-xl border border-border bg-card lg:grid-cols-[minmax(0,1fr)_360px]">
+      <div className="space-y-4 px-5 py-7 sm:px-7">
+        <Skeleton className="h-5 w-40" />
+        <Skeleton className="h-4 w-full max-w-lg" />
+        <Skeleton className="h-1.5 w-full" />
       </div>
-    </main>
+      <div className="space-y-3 border-t border-border px-5 py-7 sm:px-7 lg:border-t-0 lg:border-l">
+        <Skeleton className="h-4 w-16" />
+        <Skeleton className="h-5 w-44" />
+        <Skeleton className="h-9 w-32" />
+      </div>
+    </section>
   );
 }

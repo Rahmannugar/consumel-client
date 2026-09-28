@@ -30,14 +30,25 @@ export function AuthenticatedBoundary({ children, loading }: AuthenticatedBounda
 
   if (account.isError && !(account.error instanceof APIError && account.error.status === 401)) {
     return (
-      <div className="space-y-5 text-center">
-        <h1 className="font-[family-name:var(--font-bricolage-grotesque)] text-3xl font-bold tracking-[-0.03em] text-[#071018]">
-          Sign-in could not be completed
-        </h1>
-        <Button className="w-full" type="button" onClick={() => account.refetch()}>
-          Try again
-        </Button>
-      </div>
+      <main className="grid min-h-svh place-items-center bg-background px-5 py-10 text-foreground">
+        <section className="w-full max-w-sm rounded-xl border border-border bg-card p-6 shadow-sm">
+          <h1 className="font-[family-name:var(--font-bricolage-grotesque)] text-lg font-semibold tracking-[-0.025em]">
+            We couldn’t load your account
+          </h1>
+          <p className="mt-2 text-xs leading-5 text-muted-foreground">
+            Consumel could not restore your session. Check your connection and try again.
+          </p>
+          <Button
+            className="mt-5"
+            size="compact"
+            variant="secondary"
+            type="button"
+            onClick={() => account.refetch()}
+          >
+            Retry
+          </Button>
+        </section>
+      </main>
     );
   }
 

@@ -17,3 +17,25 @@ export type Project = {
 export type ProjectsResponse = {
   projects: Project[];
 };
+
+export type CreateProjectInput = {
+  name: string;
+};
+
+export type ProjectAPIKey = {
+  id: string;
+  environment: ProjectEnvironment["name"];
+  prefix: "cm_test_" | "cm_live_";
+  lastFour: string;
+  createdAt: string;
+  lastUsedAt: string | null;
+};
+
+export type ProjectAPIKeyStatus = {
+  apiKey: ProjectAPIKey | null;
+};
+
+export type CreatedProjectAPIKey = {
+  apiKey: ProjectAPIKey;
+  secret: string;
+};
