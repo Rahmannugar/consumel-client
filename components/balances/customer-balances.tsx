@@ -118,7 +118,12 @@ function BalanceTable({
                 <code className="font-mono text-xs">{balance.meterKey}</code>
               </td>
               <td className="px-5 py-4 text-sm font-semibold tabular-nums">
-                {formatQuantity(balance.quantity)}
+                <span>{formatQuantity(balance.quantity)}</span>
+                {balance.nextExpiresAt ? (
+                  <span className="mt-0.5 block text-xs font-normal text-muted-foreground">
+                    Next expiry {formatDate(balance.nextExpiresAt)}
+                  </span>
+                ) : null}
               </td>
               <td className="px-5 py-4 text-xs text-muted-foreground">
                 {formatDateTime(balance.updatedAt)}
@@ -159,4 +164,8 @@ function formatDateTime(value: string) {
     dateStyle: "medium",
     timeStyle: "short",
   }).format(new Date(value));
+}
+
+function formatDate(value: string) {
+  return new Intl.DateTimeFormat(undefined, { dateStyle: "medium" }).format(new Date(value));
 }

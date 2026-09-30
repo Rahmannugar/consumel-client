@@ -1,8 +1,11 @@
 "use client";
 
+import { CalendarBlankIcon } from "@phosphor-icons/react";
+import { ByteDatePicker } from "byte-datepicker";
 import type { FormEvent, ReactNode } from "react";
 import { useState } from "react";
 import { toast } from "sonner";
+import { useApplicationTheme } from "@/components/application/application-theme";
 import { MeterCombobox } from "@/components/balances/meter-combobox";
 import { useProjectWorkspace } from "@/components/projects/project-workspace-client";
 import { Button } from "@/components/ui/button";
@@ -27,6 +30,7 @@ export function BalanceFormDialog({
   onClose: () => void;
 }) {
   const { project, environment } = useProjectWorkspace();
+  const { resolvedTheme } = useApplicationTheme();
   const context = { projectId: project.id, environment: environment.name };
   const meters = useMeters(context, !initialMeterKey);
   const [mode, setMode] = useState<"add" | "set">("add");
@@ -35,6 +39,7 @@ export function BalanceFormDialog({
     quantity: "",
   });
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
+  const [expirationDate, setExpirationDate] = useState<Date | null>(null);
   const [idempotencyKey, setIdempotencyKey] = useState(createUUIDv7);
   const add = useAddBalance(context);
   const set = useSetBalance(context, customerId, values.meterKey);
@@ -62,7 +67,10 @@ export function BalanceFormDialog({
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    const parsed = (mode === "add" ? addBalanceSchema : setBalanceSchema).safeParse(values);
+    const parsed = (mode === "add" ? addBalanceSchema : setBalanceSchema).safeParse({
+      ...values,
+      expiresAt: mode === "add" ? expirationInstant(expirationDate) : undefined,
+    });
     if (!parsed.success) {
       const errors: Record<string, string> = {};
       for (const issue of parsed.error.issues) {
@@ -75,8 +83,17 @@ export function BalanceFormDialog({
     setFieldErrors({});
     try {
       if (mode === "add") {
+        const expiresAt =
+          "expiresAt" in parsed.data && typeof parsed.data.expiresAt === "string"
+            ? parsed.data.expiresAt
+            : undefined;
         await add.mutateAsync({
-          input: { customerId, meterKey: parsed.data.meterKey, quantity: parsed.data.quantity },
+          input: {
+            customerId,
+            meterKey: parsed.data.meterKey,
+            quantity: parsed.data.quantity,
+            expiresAt,
+          },
           idempotencyKey,
         });
         toast.success("Units added");
@@ -184,6 +201,74 @@ export function BalanceFormDialog({
               <FieldError id="balance-quantity-error" message={fieldErrors.quantity} />
             ) : null}
           </div>
+          {mode === "add" ? (
+            <div>
+              <Label>Expiration</Label>
+              <p className="mt-1 text-xs leading-5 text-muted-foreground">
+                Optional. Expiring units are used before units that expire later or never.
+              </p>
+              <div className="mt-2 flex items-center gap-2">
+                <div className="min-w-0 flex-1">
+                  <ByteDatePicker
+                    className="w-full"
+                    value={expirationDate}
+                    onChange={(date) => {
+                      setExpirationDate(date);
+                      setIdempotencyKey(createUUIDv7());
+                    }}
+                    includeDays
+                    minDate={new Date()}
+                    formatString="dd mmm yyyy"
+                    hideInput
+                    theme={resolvedTheme}
+                  >
+                    {({ open: openPicker, isOpen, formattedValue }) => (
+                      <button
+                        type="button"
+                        className="flex h-11 w-full items-center justify-between rounded-lg border border-[#c8d2d9] bg-background px-3 text-left text-sm shadow-xs outline-none hover:border-[#9eb3c1] focus-visible:border-primary focus-visible:ring-3 focus-visible:ring-primary/20 dark:border-border disabled:cursor-not-allowed disabled:opacity-55"
+                        onClick={openPicker}
+                        aria-label="Entitlement expiration date"
+                        aria-haspopup="dialog"
+                        aria-expanded={isOpen}
+                        disabled={pending}
+                      >
+                        <span
+                          className={
+                            formattedValue ? "text-foreground" : "text-muted-foreground"
+                          }
+                        >
+                          {formattedValue || "Never expires"}
+                        </span>
+                        <CalendarBlankIcon
+                          className="text-muted-foreground"
+                          aria-hidden="true"
+                        />
+                      </button>
+                    )}
+                  </ByteDatePicker>
+                </div>
+                {expirationDate ? (
+                  <Button
+                    type="button"
+                    size="compact"
+                    variant="quiet"
+                    onClick={() => {
+                      setExpirationDate(null);
+                      setIdempotencyKey(createUUIDv7());
+                    }}
+                    disabled={pending}
+                  >
+                    Clear
+                  </Button>
+                ) : null}
+              </div>
+              {expirationDate ? (
+                <p className="mt-1.5 text-xs text-muted-foreground">
+                  Units remain available through the selected date.
+                </p>
+              ) : null}
+            </div>
+          ) : null}
           <div className="flex justify-end gap-2 pt-1">
             <Button
               type="button"
@@ -208,6 +293,12 @@ export function BalanceFormDialog({
       </DialogContent>
     </Dialog>
   );
+}
+
+function expirationInstant(value: Date | null) {
+  if (!value) return undefined;
+  const result = new Date(value.getFullYear(), value.getMonth(), value.getDate() + 1);
+  return result.toISOString();
 }
 
 function AdjustmentOption({

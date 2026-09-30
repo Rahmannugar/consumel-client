@@ -10,6 +10,7 @@ export type Balance = {
   customerId: string;
   meterKey: string;
   quantity: number;
+  nextExpiresAt: string | null;
   createdAt: string;
   updatedAt: string;
 };
@@ -22,6 +23,7 @@ export type AddBalanceInput = {
   customerId: string;
   meterKey: string;
   quantity: number;
+  expiresAt?: string;
 };
 
 export type SetBalanceInput = {

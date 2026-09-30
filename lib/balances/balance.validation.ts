@@ -21,6 +21,7 @@ function quantitySchema(minimum: bigint, requiredMessage: string) {
 export const addBalanceSchema = z.object({
   meterKey: z.string().min(1, "Meter is required."),
   quantity: quantitySchema(BigInt(1), "Quantity is required."),
+  expiresAt: z.string().datetime().optional(),
 });
 
 export const setBalanceSchema = z.object({

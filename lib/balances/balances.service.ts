@@ -78,6 +78,7 @@ function isBalance(value: unknown): value is Balance {
     typeof value.quantity === "number" &&
     Number.isSafeInteger(value.quantity) &&
     value.quantity >= 0 &&
+    (value.nextExpiresAt === null || typeof value.nextExpiresAt === "string") &&
     typeof value.createdAt === "string" &&
     typeof value.updatedAt === "string"
   );
