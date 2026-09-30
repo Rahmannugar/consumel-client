@@ -3,6 +3,7 @@
 import { ArrowLeftIcon, PencilSimpleIcon } from "@phosphor-icons/react";
 import Link from "next/link";
 import { useState } from "react";
+import { CustomerBalances } from "@/components/balances/customer-balances";
 import { CustomerFormDialog } from "@/components/customers/customer-form-dialog";
 import { useProjectWorkspace } from "@/components/projects/project-workspace-client";
 import { Button } from "@/components/ui/button";
@@ -86,6 +87,8 @@ export function CustomerDetailClient({ customerId }: { customerId: string }) {
           <Detail label="Created" value={formatDateTime(customer.data.createdAt)} />
         </dl>
       </section>
+
+      <CustomerBalances customerId={customer.data.customerId} />
 
       {editing ? (
         <CustomerFormDialog

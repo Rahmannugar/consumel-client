@@ -54,7 +54,7 @@ export async function apiRequest(path: string, init: RequestInit = {}): Promise<
   }
 }
 
-function apiURL(path: string) {
+export function apiURL(path: string) {
   const baseURL = process.env.NEXT_PUBLIC_CONSUMEL_API_URL ?? defaultAPIURL;
   return new URL(path, baseURL).toString();
 }

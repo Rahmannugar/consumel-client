@@ -10,9 +10,11 @@ import type {
 export async function loadMeters(
   context: MeterContext,
   cursor: string | null,
+  search = "",
 ): Promise<MetersResponse> {
   const query = new URLSearchParams({ limit: "25" });
   if (cursor) query.set("cursor", cursor);
+  if (search) query.set("q", search);
   const response = await apiRequest(`${metersPath(context)}?${query.toString()}`);
   if (!isMetersResponse(response)) throw invalidMeterResponse();
   return response;

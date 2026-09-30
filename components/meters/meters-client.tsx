@@ -1,21 +1,29 @@
 "use client";
 
-import { ArrowRightIcon, GaugeIcon, PlusIcon } from "@phosphor-icons/react";
+import { GaugeIcon, PlusIcon } from "@phosphor-icons/react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { ListSearch } from "@/components/application/list-search";
 import { MeterFormDialog } from "@/components/meters/meter-form-dialog";
 import { useProjectWorkspace } from "@/components/projects/project-workspace-client";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { Meter } from "@/lib/meters/meters.types";
 import { useMeters } from "@/lib/meters/useMeters";
+import { useDebouncedSearch } from "@/lib/search/use-debounced-search";
 
 export function MetersClient() {
   const router = useRouter();
   const { project, environment } = useProjectWorkspace();
   const inactive = environment.activatedAt === null;
-  const meters = useMeters({ projectId: project.id, environment: environment.name }, !inactive);
+  const [search, setSearch] = useState("");
+  const debouncedSearch = useDebouncedSearch(search);
+  const meters = useMeters(
+    { projectId: project.id, environment: environment.name },
+    !inactive,
+    debouncedSearch,
+  );
   const [creating, setCreating] = useState(false);
   const rows = meters.data?.pages.flatMap((page) => page.meters) ?? [];
   const meterHref = (meterKey: string) =>
@@ -34,6 +42,14 @@ export function MetersClient() {
           </Button>
         ) : null}
       </div>
+      {!inactive ? (
+        <ListSearch
+          value={search}
+          onChange={setSearch}
+          label="Search meters"
+          placeholder="Search by meter key or name"
+        />
+      ) : null}
       {inactive ? (
         <InactiveEnvironment projectSlug={project.slug} />
       ) : meters.isPending ? (
@@ -41,17 +57,21 @@ export function MetersClient() {
       ) : meters.isError ? (
         <LoadError onRetry={() => meters.refetch()} />
       ) : rows.length === 0 ? (
-        <EmptyMeters onCreate={() => setCreating(true)} />
+        debouncedSearch ? (
+          <NoMeterResults />
+        ) : (
+          <EmptyMeters onCreate={() => setCreating(true)} />
+        )
       ) : (
         <section className="mt-7 overflow-hidden rounded-xl border border-border bg-card">
           <div className="overflow-x-auto">
             <table className="w-full min-w-[720px] border-collapse text-left text-sm">
               <thead className="border-b border-border bg-secondary/60 text-xs text-muted-foreground">
                 <tr>
-                  <th className="px-5 py-3 font-medium">Meter</th>
+                  <th className="px-5 py-3 font-medium">Name</th>
+                  <th className="px-5 py-3 font-medium">Meter key</th>
                   <th className="px-5 py-3 font-medium">Type</th>
                   <th className="px-5 py-3 font-medium">Created</th>
-                  <th className="w-12 px-4 py-3" aria-label="Open meter" />
                 </tr>
               </thead>
               <tbody className="divide-y divide-border">
@@ -88,16 +108,29 @@ export function MetersClient() {
   );
 }
 
+function NoMeterResults() {
+  return (
+    <section className="mt-7 rounded-xl border border-border bg-card px-5 py-10 text-center">
+      <h2 className="text-sm font-semibold">No meters found</h2>
+      <p className="mt-1.5 text-xs text-muted-foreground">Try a different meter key or name.</p>
+    </section>
+  );
+}
+
 function MeterRow({ meter, href }: { meter: Meter; href: string }) {
   return (
-    <tr className="transition-colors hover:bg-secondary/45">
-      <td className="px-5 py-4">
-        <Link href={href} className="block font-medium text-foreground hover:text-primary">
+    <tr className="relative transition-colors hover:bg-secondary/45 focus-within:bg-secondary/45 focus-within:ring-2 focus-within:ring-ring focus-within:ring-inset">
+      <td className="px-5 py-4 font-medium text-foreground">
+        <Link
+          href={href}
+          aria-label={`Open meter ${meter.name}`}
+          className="after:absolute after:inset-0 focus-visible:outline-none"
+        >
           {meter.name}
         </Link>
-        <code className="mt-1 block font-mono text-xs text-muted-foreground">
-          {meter.meterKey}
-        </code>
+      </td>
+      <td className="px-5 py-4">
+        <code className="font-mono text-xs text-muted-foreground">{meter.meterKey}</code>
       </td>
       <td className="px-5 py-4">
         <span className="rounded-full bg-secondary px-2.5 py-1 text-xs font-medium capitalize">
@@ -105,13 +138,6 @@ function MeterRow({ meter, href }: { meter: Meter; href: string }) {
         </span>
       </td>
       <td className="px-5 py-4 text-muted-foreground">{formatDate(meter.createdAt)}</td>
-      <td className="px-4 py-4">
-        <Button asChild variant="quiet" size="compact" className="size-8 p-0">
-          <Link href={href} aria-label={`Open ${meter.name}`}>
-            <ArrowRightIcon />
-          </Link>
-        </Button>
-      </td>
     </tr>
   );
 }

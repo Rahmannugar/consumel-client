@@ -11,9 +11,11 @@ import type {
 export async function loadCustomers(
   context: CustomerContext,
   cursor: string | null,
+  search = "",
 ): Promise<CustomersResponse> {
   const query = new URLSearchParams({ limit: "25" });
   if (cursor) query.set("cursor", cursor);
+  if (search) query.set("q", search);
   const response = await apiRequest(`${customersPath(context)}?${query.toString()}`);
   if (!isCustomersResponse(response)) {
     throw invalidCustomerResponse();

@@ -7,6 +7,7 @@ export function Toaster() {
   return (
     <Sonner
       position="top-right"
+      closeButton
       icons={{
         success: <CheckCircle className="size-4 text-[#58a9f8]" weight="fill" />,
         warning: <Warning className="size-4 text-amber-400" weight="fill" />,
@@ -21,6 +22,8 @@ export function Toaster() {
           title: "!whitespace-pre-line",
           description: "!text-[#aab4bc]",
           actionButton: "!bg-[#087cec] !text-white",
+          closeButton:
+            "!border-white/15 !bg-[#071018] !text-white hover:!bg-[#14212b] focus-visible:!ring-2 focus-visible:!ring-[#58a9f8]",
         },
       }}
     />

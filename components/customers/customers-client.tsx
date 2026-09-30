@@ -1,22 +1,26 @@
 "use client";
 
-import { ArrowRightIcon, PlusIcon, UsersIcon } from "@phosphor-icons/react";
+import { PlusIcon, UsersIcon } from "@phosphor-icons/react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { ListSearch } from "@/components/application/list-search";
 import { CustomerFormDialog } from "@/components/customers/customer-form-dialog";
 import { useProjectWorkspace } from "@/components/projects/project-workspace-client";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { Customer } from "@/lib/customers/customers.types";
 import { useCustomers } from "@/lib/customers/useCustomers";
+import { useDebouncedSearch } from "@/lib/search/use-debounced-search";
 
 export function CustomersClient() {
   const router = useRouter();
   const { project, environment } = useProjectWorkspace();
   const inactive = environment.activatedAt === null;
   const context = { projectId: project.id, environment: environment.name };
-  const customers = useCustomers(context, !inactive);
+  const [search, setSearch] = useState("");
+  const debouncedSearch = useDebouncedSearch(search);
+  const customers = useCustomers(context, !inactive, debouncedSearch);
   const [creating, setCreating] = useState(false);
   const rows = customers.data?.pages.flatMap((page) => page.customers) ?? [];
 
@@ -40,6 +44,15 @@ export function CustomersClient() {
         ) : null}
       </div>
 
+      {!inactive ? (
+        <ListSearch
+          value={search}
+          onChange={setSearch}
+          label="Search customers"
+          placeholder="Search by ID, name, or email"
+        />
+      ) : null}
+
       {inactive ? (
         <InactiveEnvironment projectSlug={project.slug} />
       ) : customers.isPending ? (
@@ -47,18 +60,22 @@ export function CustomersClient() {
       ) : customers.isError ? (
         <LoadError onRetry={() => customers.refetch()} />
       ) : rows.length === 0 ? (
-        <EmptyCustomers onCreate={() => setCreating(true)} />
+        debouncedSearch ? (
+          <NoCustomerResults />
+        ) : (
+          <EmptyCustomers onCreate={() => setCreating(true)} />
+        )
       ) : (
         <section className="mt-7 overflow-hidden rounded-xl border border-border bg-card">
           <div className="overflow-x-auto">
             <table className="w-full min-w-[760px] border-collapse text-left text-sm">
               <thead className="border-b border-border bg-secondary/60 text-xs text-muted-foreground">
                 <tr>
-                  <th className="px-5 py-3 font-medium">Customer</th>
+                  <th className="px-5 py-3 font-medium">Name</th>
+                  <th className="px-5 py-3 font-medium">Customer ID</th>
                   <th className="px-5 py-3 font-medium">Email</th>
                   <th className="px-5 py-3 font-medium">Plan</th>
                   <th className="px-5 py-3 font-medium">Created</th>
-                  <th className="w-12 px-4 py-3" aria-label="Open customer" />
                 </tr>
               </thead>
               <tbody className="divide-y divide-border">
@@ -100,18 +117,31 @@ export function CustomersClient() {
   );
 }
 
+function NoCustomerResults() {
+  return (
+    <section className="mt-7 rounded-xl border border-border bg-card px-5 py-10 text-center">
+      <h2 className="text-sm font-semibold">No customers found</h2>
+      <p className="mt-1.5 text-xs text-muted-foreground">
+        Try a different customer ID, name, or email.
+      </p>
+    </section>
+  );
+}
+
 function CustomerRow({ customer, href }: { customer: Customer; href: string }) {
   return (
-    <tr className="transition-colors hover:bg-secondary/45">
-      <td className="px-5 py-4">
-        <Link href={href} className="block font-medium text-foreground hover:text-primary">
-          {customer.name ?? customer.customerId}
+    <tr className="relative transition-colors hover:bg-secondary/45 focus-within:bg-secondary/45 focus-within:ring-2 focus-within:ring-ring focus-within:ring-inset">
+      <td className="px-5 py-4 font-medium text-foreground">
+        <Link
+          href={href}
+          aria-label={`Open customer ${customer.name ?? customer.customerId}`}
+          className="after:absolute after:inset-0 focus-visible:outline-none"
+        >
+          {customer.name ?? "—"}
         </Link>
-        {customer.name ? (
-          <code className="mt-1 block font-mono text-xs text-muted-foreground">
-            {customer.customerId}
-          </code>
-        ) : null}
+      </td>
+      <td className="px-5 py-4">
+        <code className="font-mono text-xs text-muted-foreground">{customer.customerId}</code>
       </td>
       <td className="px-5 py-4 text-muted-foreground">{customer.email ?? "—"}</td>
       <td className="px-5 py-4">
@@ -124,13 +154,6 @@ function CustomerRow({ customer, href }: { customer: Customer; href: string }) {
         )}
       </td>
       <td className="px-5 py-4 text-muted-foreground">{formatDate(customer.createdAt)}</td>
-      <td className="px-4 py-4">
-        <Button asChild variant="quiet" size="compact" className="size-8 p-0">
-          <Link href={href} aria-label={`Open ${customer.customerId}`}>
-            <ArrowRightIcon />
-          </Link>
-        </Button>
-      </td>
     </tr>
   );
 }
@@ -186,8 +209,9 @@ function CustomerListSkeleton() {
   return (
     <section className="mt-7 space-y-px overflow-hidden rounded-xl border border-border bg-border">
       {rows.map((row) => (
-        <div key={row} className="grid grid-cols-4 gap-5 bg-card px-5 py-5">
+        <div key={row} className="grid grid-cols-5 gap-5 bg-card px-5 py-5">
           <Skeleton className="h-4 w-36" />
+          <Skeleton className="h-4 w-28" />
           <Skeleton className="h-4 w-44" />
           <Skeleton className="h-4 w-20" />
           <Skeleton className="h-4 w-24" />

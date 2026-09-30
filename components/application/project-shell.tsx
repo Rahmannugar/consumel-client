@@ -74,7 +74,7 @@ type ProjectShellProps = {
   onProjectCreated: (projectSlug: string) => void;
   environment: EnvironmentName;
   onEnvironmentChange: (environment: EnvironmentName) => void;
-  activeSection: "overview" | "customers" | "meters" | "project-settings";
+  activeSection: "overview" | "customers" | "meters" | "events" | "project-settings";
   children: ReactNode;
 };
 
@@ -82,7 +82,7 @@ const navigation = [
   { label: "Overview", icon: HouseIcon, segment: "", available: true },
   { label: "Customers", icon: UsersIcon, segment: "customers", available: true },
   { label: "Meters", icon: GaugeIcon, segment: "meters", available: true },
-  { label: "Events", icon: PulseIcon, segment: "events", available: false },
+  { label: "Events", icon: PulseIcon, segment: "events", available: true },
   {
     label: "Payment Providers",
     icon: PlugsConnectedIcon,
@@ -262,6 +262,7 @@ function ProjectSidebar({
                         (activeSection === "overview" && item.label === "Overview") ||
                         (activeSection === "customers" && item.label === "Customers") ||
                         (activeSection === "meters" && item.label === "Meters") ||
+                        (activeSection === "events" && item.label === "Events") ||
                         (activeSection === "project-settings" &&
                           item.label === "Project Settings")
                       }
@@ -278,6 +279,7 @@ function ProjectSidebar({
                               (activeSection === "overview" && item.label === "Overview") ||
                               (activeSection === "customers" && item.label === "Customers") ||
                               (activeSection === "meters" && item.label === "Meters") ||
+                              (activeSection === "events" && item.label === "Events") ||
                               (activeSection === "project-settings" &&
                                 item.label === "Project Settings")
                                 ? "fill"

@@ -76,7 +76,9 @@ function ResolvedProjectWorkspace({
                 ? "/customers"
                 : section === "meters"
                   ? "/meters"
-                  : "/project-settings"
+                  : section === "events"
+                    ? "/events"
+                    : "/project-settings"
           }`,
         )
       }
@@ -100,7 +102,7 @@ function WorkspaceShell({
   pathname: string;
   onProjectChange: (
     slug: string,
-    section: "overview" | "customers" | "meters" | "project-settings",
+    section: "overview" | "customers" | "meters" | "events" | "project-settings",
   ) => void;
   children: ReactNode;
 }) {
@@ -114,9 +116,11 @@ function WorkspaceShell({
     ? "customers"
     : pathname.includes("/meters")
       ? "meters"
-      : pathname.endsWith("/project-settings")
-        ? "project-settings"
-        : "overview";
+      : pathname.includes("/events")
+        ? "events"
+        : pathname.endsWith("/project-settings")
+          ? "project-settings"
+          : "overview";
 
   return (
     <ProjectWorkspaceContext.Provider value={{ account, project, environment }}>
