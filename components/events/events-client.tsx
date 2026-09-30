@@ -15,8 +15,8 @@ import {
 } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { EventsFilter, UsageOperation } from "@/lib/events/events.types";
-import { useEvents } from "@/lib/events/useEvents";
 import { useEventStream } from "@/lib/events/useEventStream";
+import { useEvents } from "@/lib/events/useEvents";
 
 export function EventsClient() {
   const { project, environment } = useProjectWorkspace();
