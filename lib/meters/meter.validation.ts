@@ -20,4 +20,9 @@ export const createMeterSchema = z.object({
   type: z.enum(["prepaid", "postpaid", "hybrid"], { error: "Type is required." }),
 });
 
+export const updateMeterSchema = createMeterSchema.pick({
+  name: true,
+  description: true,
+});
+
 export type MeterFormValues = z.input<typeof createMeterSchema>;

@@ -3,9 +3,12 @@
 import { PulseIcon } from "@phosphor-icons/react";
 import { useState } from "react";
 import { EventDateRangePicker } from "@/components/events/event-date-range-picker";
+import {
+  UsageOperationDialog,
+  UsageOutcomeBadge,
+} from "@/components/events/usage-operation-details";
 import { useProjectWorkspace } from "@/components/projects/project-workspace-client";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
 import {
   Select,
   SelectContent,
@@ -103,7 +106,7 @@ export function EventsClient() {
       )}
 
       {selected ? (
-        <OperationDialog operation={selected} onClose={() => setSelected(null)} />
+        <UsageOperationDialog operation={selected} onClose={() => setSelected(null)} />
       ) : null}
     </div>
   );
@@ -157,7 +160,7 @@ function OperationRow({
           aria-label={`Inspect ${operation.status} usage operation ${operation.id}`}
           className="after:absolute after:inset-0 focus-visible:outline-none"
         >
-          <StatusBadge status={operation.status} />
+          <UsageOutcomeBadge status={operation.status} />
         </button>
       </td>
       <td className="px-5 py-4 font-mono text-xs">{operation.customerId}</td>
@@ -166,86 +169,6 @@ function OperationRow({
       <td className="px-5 py-4 tabular-nums text-muted-foreground">{operation.replayCount}</td>
       <td className="px-5 py-4 text-muted-foreground">{formatDateTime(operation.createdAt)}</td>
     </tr>
-  );
-}
-
-function StatusBadge({ status }: { status: UsageOperation["status"] }) {
-  return (
-    <span
-      className={
-        status === "accepted"
-          ? "rounded-full bg-emerald-500/12 px-2.5 py-1 text-xs font-medium text-emerald-700 dark:text-emerald-400"
-          : "rounded-full bg-destructive/10 px-2.5 py-1 text-xs font-medium text-destructive"
-      }
-    >
-      {status === "accepted" ? "Processed" : "Blocked"}
-    </span>
-  );
-}
-
-function OperationDialog({
-  operation,
-  onClose,
-}: {
-  operation: UsageOperation;
-  onClose: () => void;
-}) {
-  return (
-    <Dialog open onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="sm:max-w-xl">
-        <DialogTitle>Usage operation</DialogTitle>
-        <DialogDescription>
-          Inspect the persisted decision and balance effect for this request.
-        </DialogDescription>
-        <dl className="mt-3 grid gap-px overflow-hidden rounded-lg border border-border bg-border text-sm sm:grid-cols-2">
-          <Detail
-            label="Outcome"
-            value={operation.status === "accepted" ? "Processed" : "Blocked"}
-          />
-          <Detail label="Operation ID" value={operation.id} mono />
-          <Detail label="Customer ID" value={operation.customerId} mono />
-          <Detail label="Meter key" value={operation.meterKey} mono />
-          <Detail label="Meter type" value={operation.meterType} />
-          <Detail label="Quantity" value={operation.quantity.toLocaleString()} />
-          <Detail label="Balance debited" value={operation.balanceDebited.toLocaleString()} />
-          <Detail
-            label="Remaining balance"
-            value={operation.remainingBalance?.toLocaleString() ?? "Not applicable"}
-          />
-          <Detail label="Denial reason" value={operation.denialReason ?? "Not applicable"} />
-          <Detail label="Billable" value={operation.billable ? "Yes" : "No"} />
-          <Detail label="Idempotent replays" value={operation.replayCount.toString()} />
-          <Detail
-            label="Last replayed"
-            value={
-              operation.lastReplayedAt ? formatDateTime(operation.lastReplayedAt) : "Never"
-            }
-          />
-          <Detail label="Created" value={formatDateTime(operation.createdAt)} />
-        </dl>
-      </DialogContent>
-    </Dialog>
-  );
-}
-
-function Detail({
-  label,
-  value,
-  mono = false,
-}: {
-  label: string;
-  value: string;
-  mono?: boolean;
-}) {
-  return (
-    <div className="min-w-0 bg-card px-4 py-3">
-      <dt className="text-xs text-muted-foreground">{label}</dt>
-      <dd
-        className={`mt-1 break-words capitalize ${mono ? "font-mono text-xs normal-case" : ""}`}
-      >
-        {value}
-      </dd>
-    </div>
   );
 }
 

@@ -1,6 +1,7 @@
 "use client";
 
-import { SlidersHorizontalIcon, WalletIcon } from "@phosphor-icons/react";
+import { ArrowRightIcon, SlidersHorizontalIcon, WalletIcon } from "@phosphor-icons/react";
+import Link from "next/link";
 import { useState } from "react";
 import { BalanceFormDialog } from "@/components/balances/balance-form-dialog";
 import { useProjectWorkspace } from "@/components/projects/project-workspace-client";
@@ -70,6 +71,8 @@ export function CustomerBalances({ customerId }: { customerId: string }) {
       {balances.isSuccess && balances.data.balances.length > 0 ? (
         <BalanceTable
           balances={balances.data.balances}
+          projectSlug={project.slug}
+          customerId={customerId}
           onSet={(balance) =>
             setDialog({
               meterKey: balance.meterKey,
@@ -93,9 +96,13 @@ export function CustomerBalances({ customerId }: { customerId: string }) {
 
 function BalanceTable({
   balances,
+  projectSlug,
+  customerId,
   onSet,
 }: {
   balances: Balance[];
+  projectSlug: string;
+  customerId: string;
   onSet: (balance: Balance) => void;
 }) {
   return (
@@ -113,25 +120,39 @@ function BalanceTable({
         </thead>
         <tbody className="divide-y divide-border">
           {balances.map((balance) => (
-            <tr key={balance.id}>
+            <tr
+              key={balance.id}
+              className="relative transition-colors hover:bg-secondary/45 focus-within:bg-secondary/45 focus-within:ring-2 focus-within:ring-ring focus-within:ring-inset"
+            >
               <td className="px-5 py-4 sm:px-6">
-                <code className="font-mono text-xs">{balance.meterKey}</code>
+                <Link
+                  href={`/dashboard/${projectSlug}/customers/${encodeURIComponent(customerId)}/balances/${encodeURIComponent(balance.meterKey)}`}
+                  aria-label={`View ${balance.meterKey} balance details`}
+                  className="after:absolute after:inset-0 focus-visible:outline-none"
+                >
+                  <code className="font-mono text-xs">{balance.meterKey}</code>
+                </Link>
               </td>
               <td className="px-5 py-4 text-sm font-semibold tabular-nums">
-                <span>{formatQuantity(balance.quantity)}</span>
-                {balance.nextExpiresAt ? (
-                  <span className="mt-0.5 block text-xs font-normal text-muted-foreground">
-                    Next expiry {formatDate(balance.nextExpiresAt)}
-                  </span>
-                ) : null}
+                {formatQuantity(balance.quantity)}
               </td>
               <td className="px-5 py-4 text-xs text-muted-foreground">
                 {formatDateTime(balance.updatedAt)}
               </td>
-              <td className="px-5 py-4 text-right sm:px-6">
-                <Button size="compact" variant="quiet" onClick={() => onSet(balance)}>
-                  Adjust
-                </Button>
+              <td className="relative z-10 px-5 py-4 text-right sm:px-6">
+                <div className="flex items-center justify-end gap-1">
+                  <Button asChild size="compact" variant="quiet">
+                    <Link
+                      href={`/dashboard/${projectSlug}/customers/${encodeURIComponent(customerId)}/balances/${encodeURIComponent(balance.meterKey)}`}
+                    >
+                      View details
+                      <ArrowRightIcon />
+                    </Link>
+                  </Button>
+                  <Button size="compact" variant="quiet" onClick={() => onSet(balance)}>
+                    Adjust
+                  </Button>
+                </div>
               </td>
             </tr>
           ))}
@@ -164,8 +185,4 @@ function formatDateTime(value: string) {
     dateStyle: "medium",
     timeStyle: "short",
   }).format(new Date(value));
-}
-
-function formatDate(value: string) {
-  return new Intl.DateTimeFormat(undefined, { dateStyle: "medium" }).format(new Date(value));
 }

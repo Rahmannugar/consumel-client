@@ -5,6 +5,7 @@ import type {
   MeterContext,
   MetersResponse,
   MeterType,
+  UpdateMeterInput,
 } from "./meters.types";
 
 export async function loadMeters(
@@ -32,6 +33,19 @@ export async function createMeter(
 ): Promise<Meter> {
   const response = await apiRequest(metersPath(context), {
     method: "POST",
+    body: JSON.stringify(input),
+  });
+  if (!isMeter(response)) throw invalidMeterResponse();
+  return response;
+}
+
+export async function updateMeter(
+  context: MeterContext,
+  meterKey: string,
+  input: UpdateMeterInput,
+): Promise<Meter> {
+  const response = await apiRequest(`${metersPath(context)}/${encodeURIComponent(meterKey)}`, {
+    method: "PUT",
     body: JSON.stringify(input),
   });
   if (!isMeter(response)) throw invalidMeterResponse();

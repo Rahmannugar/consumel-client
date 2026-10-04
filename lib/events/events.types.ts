@@ -31,6 +31,8 @@ export type EventsContext = {
 export type EventsFilter = {
   status: OperationStatus | "";
   period: "7d" | "30d" | "60d" | "90d" | "1y" | "custom";
+  customerId?: string;
+  meterKey?: string;
   from?: string;
   to?: string;
 };

@@ -24,6 +24,11 @@ export type CreateMeterInput = {
   type: MeterType;
 };
 
+export type UpdateMeterInput = {
+  name: string;
+  description?: string;
+};
+
 export type MeterContext = {
   projectId: string;
   environment: ProjectEnvironment["name"];

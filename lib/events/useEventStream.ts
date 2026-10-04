@@ -44,6 +44,8 @@ export function useEventStream(context: EventsContext, filter: EventsFilter, ena
 
 function matchesFilter(operation: UsageOperation, filter: EventsFilter) {
   if (filter.status && operation.status !== filter.status) return false;
+  if (filter.customerId && operation.customerId !== filter.customerId) return false;
+  if (filter.meterKey && operation.meterKey !== filter.meterKey) return false;
   const range = eventRange(filter);
   const createdAt = new Date(operation.createdAt).getTime();
   return (

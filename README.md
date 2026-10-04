@@ -12,9 +12,24 @@ customer-facing web application.
 - Next.js 16 and React 19
 - TypeScript
 - Tailwind CSS 4
+- shadcn UI primitives
+- ByteDatePicker for date and date-range selection
 - Motion and GSAP
 - Biome
 - Bun 1.4
+
+## Interface Conventions
+
+- Use ByteDatePicker for calendar dates and date ranges. Do not introduce a
+  second date-picker library for feature-local convenience.
+- Use Recharts through the shadcn chart layer for authenticated product charts.
+  Add the dependency with the first real chart workflow rather than carrying an
+  unused package.
+- Request aggregated time-series buckets from the server. Do not send an
+  unbounded event history to the browser for client-side aggregation.
+- Keep exact records in tables and use charts for trends and comparisons.
+- Every chart must support responsive layouts, Light and Dark modes, accessible
+  labels, tooltips where useful, and deliberate loading, empty, and error states.
 
 ## Local Development
 

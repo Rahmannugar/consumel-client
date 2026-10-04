@@ -15,31 +15,40 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { createMeterSchema } from "@/lib/meters/meter.validation";
+import { createMeterSchema, updateMeterSchema } from "@/lib/meters/meter.validation";
 import { meterErrorMessage } from "@/lib/meters/meters.service";
 import type { Meter, MeterType } from "@/lib/meters/meters.types";
 import { useCreateMeter } from "@/lib/meters/useCreateMeter";
+import { useUpdateMeter } from "@/lib/meters/useUpdateMeter";
 
 export function MeterFormDialog({
+  meter,
   onClose,
   onSaved,
 }: {
+  meter?: Meter;
   onClose: () => void;
   onSaved: (meter: Meter) => void;
 }) {
   const { project, environment } = useProjectWorkspace();
-  const create = useCreateMeter({ projectId: project.id, environment: environment.name });
+  const context = { projectId: project.id, environment: environment.name } as const;
+  const create = useCreateMeter(context);
+  const update = useUpdateMeter(context, meter?.meterKey ?? "");
+  const isEditing = meter !== undefined;
+  const isPending = create.isPending || update.isPending;
   const [values, setValues] = useState({
-    meterKey: "",
-    name: "",
-    description: "",
-    type: "" as MeterType | "",
+    meterKey: meter?.meterKey ?? "",
+    name: meter?.name ?? "",
+    description: meter?.description ?? "",
+    type: meter?.type ?? ("" as MeterType | ""),
   });
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    const parsed = createMeterSchema.safeParse(values);
+    const parsed = isEditing
+      ? updateMeterSchema.safeParse(values)
+      : createMeterSchema.safeParse(values);
     if (!parsed.success) {
       const errors: Record<string, string> = {};
       for (const issue of parsed.error.issues) {
@@ -51,9 +60,11 @@ export function MeterFormDialog({
     }
     setFieldErrors({});
     try {
-      const meter = await create.mutateAsync(parsed.data);
-      toast.success("Meter created");
-      onSaved(meter);
+      const savedMeter = isEditing
+        ? await update.mutateAsync(parsed.data)
+        : await create.mutateAsync(createMeterSchema.parse(values));
+      toast.success(isEditing ? "Meter updated" : "Meter created");
+      onSaved(savedMeter);
     } catch (error) {
       toast.error(meterErrorMessage(error));
     }
@@ -65,29 +76,38 @@ export function MeterFormDialog({
   }
 
   return (
-    <Dialog open onOpenChange={(open) => !open && !create.isPending && onClose()}>
+    <Dialog open onOpenChange={(open) => !open && !isPending && onClose()}>
       <DialogContent className="max-h-[calc(100svh-2rem)] overflow-y-auto sm:max-w-xl">
-        <DialogTitle>Create meter</DialogTitle>
+        <DialogTitle>{isEditing ? "Edit meter" : "Create meter"}</DialogTitle>
         <DialogDescription>
-          The meter key is the stable identifier used by your application and cannot be changed.
+          {isEditing
+            ? "Update the name and description shared by Sandbox and Live. The meter key and billing type cannot be changed."
+            : "The meter key is the stable identifier used by your application and cannot be changed."}
         </DialogDescription>
         <form className="mt-5 space-y-5" onSubmit={submit} noValidate>
-          <RequiredField
-            id="meter-key"
-            label="Meter key"
-            value={values.meterKey}
-            onChange={(value) => updateField("meterKey", value)}
-            error={fieldErrors.meterKey}
-            disabled={create.isPending}
-            placeholder="api_calls"
-          />
+          {isEditing ? (
+            <div className="grid grid-cols-2 gap-3 rounded-lg border border-border bg-muted/30 p-4">
+              <ReadOnlyDefinition label="Meter key" value={meter.meterKey} code />
+              <ReadOnlyDefinition label="Type" value={meter.type} capitalize />
+            </div>
+          ) : (
+            <RequiredField
+              id="meter-key"
+              label="Meter key"
+              value={values.meterKey}
+              onChange={(value) => updateField("meterKey", value)}
+              error={fieldErrors.meterKey}
+              disabled={isPending}
+              placeholder="api_calls"
+            />
+          )}
           <RequiredField
             id="meter-name"
             label="Name"
             value={values.name}
             onChange={(value) => updateField("name", value)}
             error={fieldErrors.name}
-            disabled={create.isPending}
+            disabled={isPending}
             placeholder="API calls"
           />
           <div>
@@ -97,7 +117,7 @@ export function MeterFormDialog({
               className="mt-2"
               value={values.description}
               onChange={(event) => updateField("description", event.target.value)}
-              disabled={create.isPending}
+              disabled={isPending}
               placeholder="Requests processed by your API."
               aria-invalid={Boolean(fieldErrors.description)}
               aria-describedby={fieldErrors.description ? "meter-description-error" : undefined}
@@ -106,61 +126,93 @@ export function MeterFormDialog({
               <FieldError id="meter-description-error" message={fieldErrors.description} />
             ) : null}
           </div>
-          <div>
-            <Label htmlFor="meter-type" className="gap-0.5">
-              Type
-              <span className="text-destructive" aria-hidden="true">
-                *
-              </span>
-            </Label>
-            <Select
-              value={values.type || undefined}
-              onValueChange={(value) => {
-                setValues((current) => ({ ...current, type: value as MeterType }));
-                setFieldErrors((current) => ({ ...current, type: "" }));
-              }}
-              disabled={create.isPending}
-              required
-            >
-              <SelectTrigger
-                id="meter-type"
-                className="mt-2 w-full"
-                aria-required="true"
-                aria-invalid={Boolean(fieldErrors.type)}
-                aria-describedby={fieldErrors.type ? "meter-type-error" : "meter-type-help"}
+          {!isEditing ? (
+            <div>
+              <Label htmlFor="meter-type" className="gap-0.5">
+                Type
+                <span className="text-destructive" aria-hidden="true">
+                  *
+                </span>
+              </Label>
+              <Select
+                value={values.type || undefined}
+                onValueChange={(value) => {
+                  setValues((current) => ({ ...current, type: value as MeterType }));
+                  setFieldErrors((current) => ({ ...current, type: "" }));
+                }}
+                disabled={isPending}
+                required
               >
-                <SelectValue placeholder="Select a type" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="prepaid">Prepaid</SelectItem>
-                <SelectItem value="postpaid">Postpaid</SelectItem>
-                <SelectItem value="hybrid">Hybrid</SelectItem>
-              </SelectContent>
-            </Select>
-            <p id="meter-type-help" className="mt-1.5 text-xs text-muted-foreground">
-              Choose how usage is billed.
-            </p>
-            {fieldErrors.type ? (
-              <FieldError id="meter-type-error" message={fieldErrors.type} />
-            ) : null}
-          </div>
+                <SelectTrigger
+                  id="meter-type"
+                  className="mt-2 w-full"
+                  aria-required="true"
+                  aria-invalid={Boolean(fieldErrors.type)}
+                  aria-describedby={fieldErrors.type ? "meter-type-error" : "meter-type-help"}
+                >
+                  <SelectValue placeholder="Select a type" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="prepaid">Prepaid</SelectItem>
+                  <SelectItem value="postpaid">Postpaid</SelectItem>
+                  <SelectItem value="hybrid">Hybrid</SelectItem>
+                </SelectContent>
+              </Select>
+              <p id="meter-type-help" className="mt-1.5 text-xs text-muted-foreground">
+                Choose how usage is billed.
+              </p>
+              {fieldErrors.type ? (
+                <FieldError id="meter-type-error" message={fieldErrors.type} />
+              ) : null}
+            </div>
+          ) : null}
           <div className="flex justify-end gap-2 pt-1">
             <Button
               type="button"
               variant="quiet"
               size="compact"
               onClick={onClose}
-              disabled={create.isPending}
+              disabled={isPending}
             >
               Cancel
             </Button>
-            <Button type="submit" size="compact" disabled={create.isPending}>
-              {create.isPending ? "Creating…" : "Create meter"}
+            <Button type="submit" size="compact" disabled={isPending}>
+              {isPending
+                ? isEditing
+                  ? "Saving…"
+                  : "Creating…"
+                : isEditing
+                  ? "Save changes"
+                  : "Create meter"}
             </Button>
           </div>
         </form>
       </DialogContent>
     </Dialog>
+  );
+}
+
+function ReadOnlyDefinition({
+  label,
+  value,
+  code = false,
+  capitalize = false,
+}: {
+  label: string;
+  value: string;
+  code?: boolean;
+  capitalize?: boolean;
+}) {
+  return (
+    <div className="min-w-0">
+      <p className="text-xs font-medium text-muted-foreground">{label}</p>
+      <p
+        className={`mt-1 truncate text-sm ${code ? "font-mono" : ""} ${capitalize ? "capitalize" : ""}`}
+        title={value}
+      >
+        {value}
+      </p>
+    </div>
   );
 }
 

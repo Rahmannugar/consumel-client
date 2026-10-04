@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { CustomerBalances } from "@/components/balances/customer-balances";
 import { CustomerFormDialog } from "@/components/customers/customer-form-dialog";
+import { UsageHistory } from "@/components/events/usage-history";
 import { useProjectWorkspace } from "@/components/projects/project-workspace-client";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -89,6 +90,8 @@ export function CustomerDetailClient({ customerId }: { customerId: string }) {
       </section>
 
       <CustomerBalances customerId={customer.data.customerId} />
+
+      <UsageHistory customerId={customer.data.customerId} />
 
       {editing ? (
         <CustomerFormDialog

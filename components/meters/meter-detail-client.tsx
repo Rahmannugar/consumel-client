@@ -1,13 +1,17 @@
 "use client";
 
-import { ArrowLeftIcon } from "@phosphor-icons/react";
+import { ArrowLeftIcon, PencilSimpleIcon } from "@phosphor-icons/react";
 import Link from "next/link";
+import { useState } from "react";
+import { UsageHistory } from "@/components/events/usage-history";
+import { MeterFormDialog } from "@/components/meters/meter-form-dialog";
 import { useProjectWorkspace } from "@/components/projects/project-workspace-client";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useMeter } from "@/lib/meters/useMeter";
 
 export function MeterDetailClient({ meterKey }: { meterKey: string }) {
+  const [editing, setEditing] = useState(false);
   const { project, environment } = useProjectWorkspace();
   const inactive = environment.activatedAt === null;
   const meter = useMeter(
@@ -36,7 +40,7 @@ export function MeterDetailClient({ meterKey }: { meterKey: string }) {
     );
 
   return (
-    <div className="mx-auto max-w-[900px] px-5 py-8 sm:px-8 sm:py-11">
+    <div className="mx-auto max-w-[1040px] px-5 py-8 sm:px-8 sm:py-11">
       <Button asChild variant="quiet" size="compact" className="-ml-2 mb-6">
         <Link href={listHref}>
           <ArrowLeftIcon />
@@ -52,9 +56,15 @@ export function MeterDetailClient({ meterKey }: { meterKey: string }) {
             {meter.data.meterKey}
           </code>
         </div>
-        <span className="w-fit rounded-full bg-secondary px-3 py-1.5 text-xs font-medium capitalize">
-          {meter.data.type}
-        </span>
+        <div className="flex items-center gap-2">
+          <span className="w-fit rounded-full bg-secondary px-3 py-1.5 text-xs font-medium capitalize">
+            {meter.data.type}
+          </span>
+          <Button variant="secondary" size="compact" onClick={() => setEditing(true)}>
+            <PencilSimpleIcon />
+            Edit meter
+          </Button>
+        </div>
       </div>
       <section className="mt-7 rounded-xl border border-border bg-card">
         <dl className="divide-y divide-border">
@@ -64,6 +74,14 @@ export function MeterDetailClient({ meterKey }: { meterKey: string }) {
           <Detail label="Updated" value={formatDateTime(meter.data.updatedAt)} />
         </dl>
       </section>
+      <UsageHistory meterKey={meter.data.meterKey} />
+      {editing ? (
+        <MeterFormDialog
+          meter={meter.data}
+          onClose={() => setEditing(false)}
+          onSaved={() => setEditing(false)}
+        />
+      ) : null}
     </div>
   );
 }

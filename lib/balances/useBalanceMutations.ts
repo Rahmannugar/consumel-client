@@ -15,9 +15,38 @@ export function useAddBalance(context: BalanceContext) {
       idempotencyKey: string;
     }) => addBalance(context, input, idempotencyKey),
     onSuccess: async (balance) => {
-      await queryClient.invalidateQueries({
-        queryKey: ["balances", context.projectId, context.environment, balance.customerId],
-      });
+      await Promise.all([
+        queryClient.invalidateQueries({
+          queryKey: ["balances", context.projectId, context.environment, balance.customerId],
+        }),
+        queryClient.invalidateQueries({
+          queryKey: [
+            "balance-activity",
+            context.projectId,
+            context.environment,
+            balance.customerId,
+            balance.meterKey,
+          ],
+        }),
+        queryClient.invalidateQueries({
+          queryKey: [
+            "balance",
+            context.projectId,
+            context.environment,
+            balance.customerId,
+            balance.meterKey,
+          ],
+        }),
+        queryClient.invalidateQueries({
+          queryKey: [
+            "balance-grants",
+            context.projectId,
+            context.environment,
+            balance.customerId,
+            balance.meterKey,
+          ],
+        }),
+      ]);
     },
   });
 }
@@ -27,9 +56,32 @@ export function useSetBalance(context: BalanceContext, customerId: string, meter
   return useMutation({
     mutationFn: (input: SetBalanceInput) => setBalance(context, customerId, meterKey, input),
     onSuccess: async () => {
-      await queryClient.invalidateQueries({
-        queryKey: ["balances", context.projectId, context.environment, customerId],
-      });
+      await Promise.all([
+        queryClient.invalidateQueries({
+          queryKey: ["balances", context.projectId, context.environment, customerId],
+        }),
+        queryClient.invalidateQueries({
+          queryKey: ["balance", context.projectId, context.environment, customerId, meterKey],
+        }),
+        queryClient.invalidateQueries({
+          queryKey: [
+            "balance-grants",
+            context.projectId,
+            context.environment,
+            customerId,
+            meterKey,
+          ],
+        }),
+        queryClient.invalidateQueries({
+          queryKey: [
+            "balance-activity",
+            context.projectId,
+            context.environment,
+            customerId,
+            meterKey,
+          ],
+        }),
+      ]);
     },
   });
 }

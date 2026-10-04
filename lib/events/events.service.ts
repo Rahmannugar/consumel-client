@@ -15,6 +15,8 @@ export async function loadOperations(
   const query = new URLSearchParams({ limit: "50", from: range.from, to: range.to });
   if (cursor) query.set("cursor", cursor);
   if (filter.status) query.set("status", filter.status);
+  if (filter.customerId) query.set("customerId", filter.customerId);
+  if (filter.meterKey) query.set("meterKey", filter.meterKey);
   const response = await apiRequest(
     `/v1/projects/${encodeURIComponent(context.projectId)}/environments/${context.environment}/events?${query.toString()}`,
   );
