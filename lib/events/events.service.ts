@@ -49,7 +49,8 @@ export function eventRange(filter: EventsFilter) {
     };
   }
   const to = new Date();
-  const from = new Date(to.getTime() - periodDays[filter.period] * 24 * 60 * 60 * 1000);
+  const from = new Date(Date.UTC(to.getUTCFullYear(), to.getUTCMonth(), to.getUTCDate()));
+  from.setUTCDate(from.getUTCDate() - (periodDays[filter.period] - 1));
   return { from: from.toISOString(), to: to.toISOString() };
 }
 

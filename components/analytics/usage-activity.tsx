@@ -18,8 +18,12 @@ export function UsageActivity(scope: UsageScope) {
   return (
     <>
       <UsageAnalyticsPanel
-        title="Usage"
-        description={`Allowed usage volume and request outcomes for this ${scope.customerId ? "customer" : "meter"}.`}
+        title={scope.customerId ? "Request outcomes" : "Usage"}
+        description={
+          scope.customerId
+            ? "Allowed and blocked usage requests for this customer."
+            : "Allowed usage volume and request outcomes for this meter."
+        }
         filter={filter}
         onFilterChange={setFilter}
         scope={scope}

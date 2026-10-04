@@ -61,13 +61,16 @@ export function UsageOperationDialog({
             <OperationDetail
               label="Duplicate retries"
               value={operation.replayCount.toString()}
-            />
-            <OperationDetail
-              label="Last retry received"
-              value={
-                operation.lastReplayedAt ? formatDateTime(operation.lastReplayedAt) : "Never"
+              className={
+                operation.replayCount > 0 && operation.lastReplayedAt ? "" : "sm:col-span-2"
               }
             />
+            {operation.replayCount > 0 && operation.lastReplayedAt ? (
+              <OperationDetail
+                label="Last retry received"
+                value={formatDateTime(operation.lastReplayedAt)}
+              />
+            ) : null}
           </dl>
         </details>
       </DialogContent>

@@ -92,8 +92,8 @@ export function ProjectOverviewClient() {
       {!inactive ? (
         <>
           <UsageAnalyticsPanel
-            title="Usage"
-            description="Allowed usage volume and request outcomes across this environment."
+            title="Request outcomes"
+            description="Allowed and blocked usage requests across this environment."
             filter={analyticsFilter}
             onFilterChange={setAnalyticsFilter}
           />

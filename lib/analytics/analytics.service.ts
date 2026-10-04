@@ -32,7 +32,7 @@ export async function loadUsageAnalytics(
 
 function analyticsInterval(from: string, to: string): AnalyticsInterval {
   const range = new Date(to).getTime() - new Date(from).getTime();
-  return range <= 7 * 24 * 60 * 60 * 1000 ? "hour" : "day";
+  return range <= 48 * 60 * 60 * 1000 ? "hour" : "day";
 }
 
 function isUsageAnalytics(value: unknown): value is UsageAnalytics {
