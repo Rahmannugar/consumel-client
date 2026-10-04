@@ -31,7 +31,7 @@ export function ProjectRecentActivity() {
         <div>
           <h2 className="text-sm font-semibold">Recent activity</h2>
           <p className="mt-1 text-xs text-muted-foreground">
-            Latest processed and blocked usage requests from the last 7 days.
+            Latest allowed and blocked usage requests from the last 7 days.
           </p>
         </div>
         <Button asChild size="compact" variant="quiet" className="shrink-0">
@@ -63,7 +63,7 @@ export function ProjectRecentActivity() {
           </span>
           <p className="mt-3 text-sm font-medium">No recent activity</p>
           <p className="mt-1 text-xs text-muted-foreground">
-            Usage requests will appear here after they are processed or blocked.
+            Usage requests will appear here after they are allowed or blocked.
           </p>
         </div>
       ) : (

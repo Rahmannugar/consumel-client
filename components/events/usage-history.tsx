@@ -55,7 +55,7 @@ export function UsageHistory({
         <div>
           <h2 className="text-sm font-semibold">Usage history</h2>
           <p className="mt-1 text-xs text-muted-foreground">
-            Processed and blocked consumption requests for this{" "}
+            Allowed and blocked usage requests for this{" "}
             {scope.customerId ? "customer" : "meter"}.
           </p>
         </div>
@@ -74,7 +74,7 @@ export function UsageHistory({
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All outcomes</SelectItem>
-              <SelectItem value="accepted">Processed</SelectItem>
+              <SelectItem value="accepted">Allowed</SelectItem>
               <SelectItem value="denied">Blocked</SelectItem>
             </SelectContent>
           </Select>
@@ -102,20 +102,19 @@ export function UsageHistory({
           </span>
           <p className="mt-3 text-sm font-medium">No usage in this range</p>
           <p className="mt-1 text-xs text-muted-foreground">
-            Usage requests will appear here after they are processed or blocked.
+            Usage requests will appear here after they are allowed or blocked.
           </p>
         </div>
       ) : (
         <>
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[760px] text-left text-sm">
+            <table className="w-full min-w-[680px] text-left text-sm">
               <thead className="bg-muted/45 text-[11px] font-medium tracking-wide text-muted-foreground uppercase">
                 <tr>
                   <th className="px-5 py-3 sm:px-6">Outcome</th>
                   <th className="px-5 py-3">{secondaryLabel}</th>
                   <th className="px-5 py-3">Quantity</th>
-                  <th className="px-5 py-3">Balance effect</th>
-                  <th className="px-5 py-3 sm:px-6">Created</th>
+                  <th className="px-5 py-3 sm:px-6">Occurred</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-border">
@@ -139,11 +138,6 @@ export function UsageHistory({
                     </td>
                     <td className="px-5 py-4 tabular-nums">
                       {formatQuantity(operation.quantity)}
-                    </td>
-                    <td className="px-5 py-4 text-xs text-muted-foreground">
-                      {operation.balanceDebited > 0
-                        ? `−${formatQuantity(operation.balanceDebited)}`
-                        : "No debit"}
                     </td>
                     <td className="px-5 py-4 text-xs text-muted-foreground sm:px-6">
                       {formatDateTime(operation.createdAt)}

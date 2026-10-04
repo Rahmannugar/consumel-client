@@ -1,7 +1,7 @@
 "use client";
 
 import { ChartLineUpIcon } from "@phosphor-icons/react";
-import { Area, AreaChart, CartesianGrid, XAxis, YAxis } from "recharts";
+import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from "recharts";
 import { EventDateRangePicker } from "@/components/events/event-date-range-picker";
 import { useProjectWorkspace } from "@/components/projects/project-workspace-client";
 import { Button } from "@/components/ui/button";
@@ -21,8 +21,7 @@ type AnalyticsScope = {
 };
 
 const chartConfig = {
-  acceptedQuantity: { label: "Processed", color: "#087cec" },
-  deniedQuantity: { label: "Blocked", color: "#ef4444" },
+  acceptedQuantity: { label: "Usage volume", color: "#087cec" },
 } satisfies ChartConfig;
 
 export function UsageAnalyticsPanel({
@@ -31,14 +30,12 @@ export function UsageAnalyticsPanel({
   filter,
   onFilterChange,
   scope = {},
-  showBillable = false,
 }: {
   title: string;
   description: string;
   filter: EventsFilter;
   onFilterChange: (filter: EventsFilter) => void;
   scope?: AnalyticsScope;
-  showBillable?: boolean;
 }) {
   const { project, environment } = useProjectWorkspace();
   const analytics = useUsageAnalytics(
@@ -46,9 +43,8 @@ export function UsageAnalyticsPanel({
     { ...filter, ...scope },
     environment.activatedAt !== null,
   );
-  const hasUsage =
-    analytics.data !== undefined &&
-    analytics.data.summary.acceptedOperations + analytics.data.summary.deniedOperations > 0;
+  const hasAllowedUsage =
+    analytics.data !== undefined && analytics.data.summary.acceptedQuantity > 0;
 
   return (
     <section className="mt-7 overflow-hidden rounded-xl border border-border bg-card">
@@ -76,65 +72,26 @@ export function UsageAnalyticsPanel({
         </div>
       ) : analytics.data ? (
         <>
-          <dl
-            className={`grid gap-px border-b border-border bg-border ${
-              showBillable ? "sm:grid-cols-2 lg:grid-cols-4" : "sm:grid-cols-3"
-            }`}
-          >
+          <dl className="grid gap-px border-b border-border bg-border sm:grid-cols-3">
+            <Metric label="Usage volume" value={analytics.data.summary.acceptedQuantity} />
             <Metric
-              label="Processed quantity"
-              value={analytics.data.summary.acceptedQuantity}
-            />
-            <Metric
-              label="Processed requests"
+              label="Allowed requests"
               value={analytics.data.summary.acceptedOperations}
             />
             <Metric label="Blocked requests" value={analytics.data.summary.deniedOperations} />
-            {showBillable ? (
-              <Metric
-                label="Billable requests"
-                value={analytics.data.summary.billableOperations}
-              />
-            ) : null}
           </dl>
-          {hasUsage ? (
+          {hasAllowedUsage ? (
             <div className="px-2 pt-6 pb-4 sm:px-5">
               <ChartContainer
                 config={chartConfig}
                 className="h-64"
                 aria-label="Usage volume over time"
               >
-                <AreaChart
+                <BarChart
                   data={analytics.data.buckets}
                   margin={{ left: 0, right: 12, top: 8 }}
                   accessibilityLayer
                 >
-                  <defs>
-                    <linearGradient id="accepted-usage-fill" x1="0" y1="0" x2="0" y2="1">
-                      <stop
-                        offset="5%"
-                        stopColor="var(--color-acceptedQuantity)"
-                        stopOpacity={0.35}
-                      />
-                      <stop
-                        offset="95%"
-                        stopColor="var(--color-acceptedQuantity)"
-                        stopOpacity={0.03}
-                      />
-                    </linearGradient>
-                    <linearGradient id="denied-usage-fill" x1="0" y1="0" x2="0" y2="1">
-                      <stop
-                        offset="5%"
-                        stopColor="var(--color-deniedQuantity)"
-                        stopOpacity={0.25}
-                      />
-                      <stop
-                        offset="95%"
-                        stopColor="var(--color-deniedQuantity)"
-                        stopOpacity={0.02}
-                      />
-                    </linearGradient>
-                  </defs>
                   <CartesianGrid
                     vertical={false}
                     stroke="var(--app-border)"
@@ -166,23 +123,13 @@ export function UsageAnalyticsPanel({
                       />
                     }
                   />
-                  <Area
-                    type="monotone"
+                  <Bar
                     dataKey="acceptedQuantity"
-                    stroke="var(--color-acceptedQuantity)"
-                    fill="url(#accepted-usage-fill)"
-                    strokeWidth={2}
+                    fill="var(--color-acceptedQuantity)"
+                    radius={[4, 4, 0, 0]}
                     isAnimationActive={false}
                   />
-                  <Area
-                    type="monotone"
-                    dataKey="deniedQuantity"
-                    stroke="var(--color-deniedQuantity)"
-                    fill="url(#denied-usage-fill)"
-                    strokeWidth={2}
-                    isAnimationActive={false}
-                  />
-                </AreaChart>
+                </BarChart>
               </ChartContainer>
             </div>
           ) : (
@@ -190,9 +137,9 @@ export function UsageAnalyticsPanel({
               <span className="mx-auto grid size-10 place-items-center rounded-lg bg-secondary text-muted-foreground">
                 <ChartLineUpIcon className="size-5" />
               </span>
-              <p className="mt-3 text-sm font-medium">No usage in this range</p>
+              <p className="mt-3 text-sm font-medium">No allowed usage in this range</p>
               <p className="mt-1 text-xs text-muted-foreground">
-                Usage will appear here after a request is processed or blocked.
+                Blocked requests do not contribute to usage volume.
               </p>
             </div>
           )}

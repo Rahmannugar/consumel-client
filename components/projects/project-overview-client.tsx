@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowRightIcon, KeyIcon } from "@phosphor-icons/react";
+import { ArrowRightIcon } from "@phosphor-icons/react";
 import Link from "next/link";
 import { useState } from "react";
 import { UsageAnalyticsPanel } from "@/components/analytics/usage-analytics-panel";
@@ -16,8 +16,7 @@ export function ProjectOverviewClient() {
   const keyStatus = useProjectAPIKey(project.id, environment.name);
   const inactive = environment.activatedAt === null;
   const hasKey = keyStatus.data?.apiKey !== null && keyStatus.data?.apiKey !== undefined;
-  const activeKey = keyStatus.data?.apiKey ?? null;
-  const setupComplete = !inactive && activeKey !== null;
+  const setupComplete = !inactive && hasKey;
   const totalSteps = environment.name === "live" ? 3 : 2;
   const completedSteps =
     environment.name === "live"
@@ -43,9 +42,7 @@ export function ProjectOverviewClient() {
         <SetupPanelSkeleton />
       ) : keyStatus.isError && !inactive ? (
         <APIAccessError onRetry={() => keyStatus.refetch()} />
-      ) : setupComplete ? (
-        <APIAccessSummary apiKey={activeKey} settingsHref={settingsHref} />
-      ) : (
+      ) : setupComplete ? null : (
         <section className="mt-7 overflow-hidden rounded-xl border border-border bg-card">
           <div className="grid lg:grid-cols-[minmax(0,1fr)_360px]">
             <div className="px-5 py-6 sm:px-7 sm:py-7">
@@ -96,10 +93,9 @@ export function ProjectOverviewClient() {
         <>
           <UsageAnalyticsPanel
             title="Usage"
-            description="Processed and blocked quantity across this environment."
+            description="Allowed usage volume and request outcomes across this environment."
             filter={analyticsFilter}
             onFilterChange={setAnalyticsFilter}
-            showBillable={environment.name === "live"}
           />
           <ProjectRecentActivity />
         </>
@@ -120,67 +116,6 @@ function APIAccessError({ onRetry }: { onRetry: () => void }) {
       </Button>
     </section>
   );
-}
-
-function APIAccessSummary({
-  apiKey,
-  settingsHref,
-}: {
-  apiKey: NonNullable<ReturnType<typeof useProjectAPIKey>["data"]>["apiKey"];
-  settingsHref: string;
-}) {
-  if (!apiKey) return null;
-
-  return (
-    <section className="mt-7 rounded-xl border border-border bg-card px-5 py-5 sm:px-6">
-      <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
-        <div className="flex min-w-0 items-start gap-3.5">
-          <KeyIcon className="mt-0.5 size-5 shrink-0 text-muted-foreground" />
-          <div className="min-w-0">
-            <div className="flex flex-wrap items-center gap-2.5">
-              <h2 className="text-sm font-semibold">API access</h2>
-              <span className="inline-flex items-center gap-1.5 text-xs font-medium text-emerald-700 dark:text-emerald-400">
-                <span className="size-1.5 rounded-full bg-current" />
-                Active
-              </span>
-            </div>
-            <code className="mt-2 block truncate font-mono text-xs text-muted-foreground">
-              {apiKey.prefix}••••{apiKey.lastFour}
-            </code>
-          </div>
-        </div>
-
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:gap-8">
-          <dl className="grid grid-cols-2 gap-x-8 text-xs">
-            <div>
-              <dt className="text-muted-foreground">Created</dt>
-              <dd className="mt-1 font-medium">{formatDate(apiKey.createdAt)}</dd>
-            </div>
-            <div>
-              <dt className="text-muted-foreground">Last used</dt>
-              <dd className="mt-1 font-medium">
-                {apiKey.lastUsedAt ? formatDate(apiKey.lastUsedAt) : "Never"}
-              </dd>
-            </div>
-          </dl>
-          <Button asChild size="compact" variant="secondary">
-            <Link href={settingsHref}>
-              Manage API key
-              <ArrowRightIcon />
-            </Link>
-          </Button>
-        </div>
-      </div>
-    </section>
-  );
-}
-
-function formatDate(value: string) {
-  return new Intl.DateTimeFormat(undefined, {
-    day: "numeric",
-    month: "short",
-    year: "numeric",
-  }).format(new Date(value));
 }
 
 function SetupPanelSkeleton() {

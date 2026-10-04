@@ -46,7 +46,7 @@ export function EventsClient() {
             Events
           </h1>
           <p className="mt-1.5 text-sm text-muted-foreground">
-            Processed and blocked usage operations in this environment.
+            Allowed and blocked usage requests in this environment.
           </p>
         </div>
         {!inactive ? <EventFilters filter={filter} onChange={setFilter} /> : null}
@@ -71,12 +71,12 @@ export function EventsClient() {
             <table className="w-full min-w-[850px] border-collapse text-left text-sm">
               <thead className="border-b border-border bg-secondary/60 text-xs text-muted-foreground">
                 <tr>
-                  <th className="px-5 py-3 font-medium">Status</th>
+                  <th className="px-5 py-3 font-medium">Outcome</th>
                   <th className="px-5 py-3 font-medium">Customer ID</th>
                   <th className="px-5 py-3 font-medium">Meter key</th>
                   <th className="px-5 py-3 font-medium">Quantity</th>
-                  <th className="px-5 py-3 font-medium">Replays</th>
-                  <th className="px-5 py-3 font-medium">Created</th>
+                  <th className="px-5 py-3 font-medium">Duplicate retries</th>
+                  <th className="px-5 py-3 font-medium">Occurred</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-border">
@@ -135,7 +135,7 @@ function EventFilters({
         </SelectTrigger>
         <SelectContent>
           <SelectItem value="all">All outcomes</SelectItem>
-          <SelectItem value="accepted">Processed</SelectItem>
+          <SelectItem value="accepted">Allowed</SelectItem>
           <SelectItem value="denied">Blocked</SelectItem>
         </SelectContent>
       </Select>
@@ -157,7 +157,7 @@ function OperationRow({
         <button
           type="button"
           onClick={onOpen}
-          aria-label={`Inspect ${operation.status} usage operation ${operation.id}`}
+          aria-label={`Inspect ${operation.status === "accepted" ? "allowed" : "blocked"} usage operation ${operation.id}`}
           className="after:absolute after:inset-0 focus-visible:outline-none"
         >
           <UsageOutcomeBadge status={operation.status} />
@@ -185,7 +185,7 @@ function EmptyEvents({ filtered }: { filtered: boolean }) {
         <p className="mt-1.5 text-xs leading-5 text-muted-foreground">
           {filtered
             ? "Choose another outcome or time range."
-            : "Processed and blocked usage operations will appear here."}
+            : "Allowed and blocked usage requests will appear here."}
         </p>
       </div>
     </section>
