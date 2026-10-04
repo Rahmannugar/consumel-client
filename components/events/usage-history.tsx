@@ -3,7 +3,6 @@
 import { PulseIcon } from "@phosphor-icons/react";
 import Link from "next/link";
 import { useState } from "react";
-import { EventDateRangePicker } from "@/components/events/event-date-range-picker";
 import {
   UsageOperationDialog,
   UsageOutcomeBadge,
@@ -22,17 +21,20 @@ import type { EventsFilter, UsageOperation } from "@/lib/events/events.types";
 import { useEventStream } from "@/lib/events/useEventStream";
 import { useEvents } from "@/lib/events/useEvents";
 
-type UsageHistoryProps =
+type UsageHistoryScope =
   | { customerId: string; meterKey?: never }
   | { customerId?: never; meterKey: string };
 
-export function UsageHistory(scope: UsageHistoryProps) {
+export function UsageHistory({
+  scope,
+  filter,
+  onFilterChange,
+}: {
+  scope: UsageHistoryScope;
+  filter: EventsFilter;
+  onFilterChange: (filter: EventsFilter) => void;
+}) {
   const { project, environment } = useProjectWorkspace();
-  const [filter, setFilter] = useState<EventsFilter>({
-    status: "",
-    period: "30d",
-    ...scope,
-  });
   const [selected, setSelected] = useState<UsageOperation | null>(null);
   const operations = useEvents(
     { projectId: project.id, environment: environment.name },
@@ -57,11 +59,11 @@ export function UsageHistory(scope: UsageHistoryProps) {
             {scope.customerId ? "customer" : "meter"}.
           </p>
         </div>
-        <div className="grid w-full gap-2 min-[480px]:grid-cols-2 sm:w-auto">
+        <div className="w-full sm:w-44">
           <Select
             value={filter.status || "all"}
             onValueChange={(value) =>
-              setFilter({
+              onFilterChange({
                 ...filter,
                 status: value === "all" ? "" : (value as EventsFilter["status"]),
               })
@@ -76,7 +78,6 @@ export function UsageHistory(scope: UsageHistoryProps) {
               <SelectItem value="denied">Blocked</SelectItem>
             </SelectContent>
           </Select>
-          <EventDateRangePicker filter={filter} onChange={setFilter} />
         </div>
       </div>
 

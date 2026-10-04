@@ -3,7 +3,7 @@
 import { ArrowLeftIcon, PencilSimpleIcon } from "@phosphor-icons/react";
 import Link from "next/link";
 import { useState } from "react";
-import { UsageHistory } from "@/components/events/usage-history";
+import { UsageActivity } from "@/components/analytics/usage-activity";
 import { MeterFormDialog } from "@/components/meters/meter-form-dialog";
 import { useProjectWorkspace } from "@/components/projects/project-workspace-client";
 import { Button } from "@/components/ui/button";
@@ -74,7 +74,7 @@ export function MeterDetailClient({ meterKey }: { meterKey: string }) {
           <Detail label="Updated" value={formatDateTime(meter.data.updatedAt)} />
         </dl>
       </section>
-      <UsageHistory meterKey={meter.data.meterKey} />
+      <UsageActivity meterKey={meter.data.meterKey} />
       {editing ? (
         <MeterFormDialog
           meter={meter.data}

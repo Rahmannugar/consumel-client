@@ -36,6 +36,9 @@ export function useEventStream(context: EventsContext, filter: EventsFilter, ena
       queryClient.setQueryData<InfiniteData<OperationsResponse>>(key, (current) =>
         prependOperation(current, operation),
       );
+      void queryClient.invalidateQueries({
+        queryKey: ["analytics", projectId, environment],
+      });
     };
     source.addEventListener("usage.operation", receive as EventListener);
     return () => source.close();
