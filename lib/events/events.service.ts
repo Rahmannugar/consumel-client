@@ -10,9 +10,14 @@ export async function loadOperations(
   context: EventsContext,
   cursor: string | null,
   filter: EventsFilter,
+  limit = 50,
 ): Promise<OperationsResponse> {
   const range = eventRange(filter);
-  const query = new URLSearchParams({ limit: "50", from: range.from, to: range.to });
+  const query = new URLSearchParams({
+    limit: limit.toString(),
+    from: range.from,
+    to: range.to,
+  });
   if (cursor) query.set("cursor", cursor);
   if (filter.status) query.set("status", filter.status);
   if (filter.customerId) query.set("customerId", filter.customerId);

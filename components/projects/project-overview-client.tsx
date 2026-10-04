@@ -2,9 +2,13 @@
 
 import { ArrowRightIcon, KeyIcon } from "@phosphor-icons/react";
 import Link from "next/link";
+import { useState } from "react";
+import { UsageAnalyticsPanel } from "@/components/analytics/usage-analytics-panel";
+import { ProjectRecentActivity } from "@/components/projects/project-recent-activity";
 import { useProjectWorkspace } from "@/components/projects/project-workspace-client";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import type { EventsFilter } from "@/lib/events/events.types";
 import { useProjectAPIKey } from "@/lib/projects/useProjectAPIKey";
 
 export function ProjectOverviewClient() {
@@ -21,15 +25,24 @@ export function ProjectOverviewClient() {
       : 1 + (hasKey ? 1 : 0);
   const progress = `${(completedSteps / totalSteps) * 100}%`;
   const settingsHref = `/dashboard/${project.slug}/project-settings`;
+  const [analyticsFilter, setAnalyticsFilter] = useState<EventsFilter>({
+    status: "",
+    period: "30d",
+  });
 
   return (
     <div className="mx-auto max-w-[1160px] px-5 py-8 sm:px-8 sm:py-11">
       <h1 className="font-[family-name:var(--font-bricolage-grotesque)] text-[28px] font-semibold tracking-[-0.04em]">
         Overview
       </h1>
+      <p className="mt-1.5 text-sm text-muted-foreground">
+        Usage and operational activity for this environment.
+      </p>
 
       {keyStatus.isPending && !inactive ? (
         <SetupPanelSkeleton />
+      ) : keyStatus.isError && !inactive ? (
+        <APIAccessError onRetry={() => keyStatus.refetch()} />
       ) : setupComplete ? (
         <APIAccessSummary apiKey={activeKey} settingsHref={settingsHref} />
       ) : (
@@ -79,20 +92,33 @@ export function ProjectOverviewClient() {
         </section>
       )}
 
-      <section className="mt-6 overflow-hidden rounded-xl border border-border bg-card">
-        <div className="border-b border-border px-5 py-4 sm:px-6">
-          <h2 className="text-sm font-semibold">Activity</h2>
-        </div>
-        <div className="grid min-h-52 place-items-center px-5 py-10 text-center">
-          <div>
-            <p className="text-sm font-medium">No activity yet</p>
-            <p className="mt-1.5 text-xs leading-5 text-muted-foreground">
-              Requests made to this environment will appear here.
-            </p>
-          </div>
-        </div>
-      </section>
+      {!inactive ? (
+        <>
+          <UsageAnalyticsPanel
+            title="Usage"
+            description="Processed and blocked quantity across this environment."
+            filter={analyticsFilter}
+            onFilterChange={setAnalyticsFilter}
+            showBillable={environment.name === "live"}
+          />
+          <ProjectRecentActivity />
+        </>
+      ) : null}
     </div>
+  );
+}
+
+function APIAccessError({ onRetry }: { onRetry: () => void }) {
+  return (
+    <section className="mt-7 rounded-xl border border-border bg-card px-5 py-7 text-center sm:px-6">
+      <h2 className="text-sm font-semibold">API access could not be loaded</h2>
+      <p className="mt-1.5 text-xs text-muted-foreground">
+        Consumel could not confirm this environment&apos;s API key status.
+      </p>
+      <Button className="mt-4" size="compact" variant="secondary" onClick={onRetry}>
+        Try again
+      </Button>
+    </section>
   );
 }
 

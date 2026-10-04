@@ -12,13 +12,18 @@ import type {
 } from "./events.types";
 import { eventsQueryKey } from "./useEvents";
 
-export function useEventStream(context: EventsContext, filter: EventsFilter, enabled = true) {
+export function useEventStream(
+  context: EventsContext,
+  filter: EventsFilter,
+  enabled = true,
+  pageSize = 50,
+) {
   const queryClient = useQueryClient();
   const { projectId, environment } = context;
 
   useEffect(() => {
     if (!enabled) return;
-    const key = eventsQueryKey({ projectId, environment }, filter);
+    const key = eventsQueryKey({ projectId, environment }, filter, pageSize);
     const path = `/v1/projects/${encodeURIComponent(projectId)}/environments/${environment}/events/stream`;
     const source = new EventSource(apiURL(path), { withCredentials: true });
 
@@ -34,7 +39,7 @@ export function useEventStream(context: EventsContext, filter: EventsFilter, ena
       }
       if (!isUsageOperation(operation) || !matchesFilter(operation, filter)) return;
       queryClient.setQueryData<InfiniteData<OperationsResponse>>(key, (current) =>
-        prependOperation(current, operation),
+        prependOperation(current, operation, pageSize),
       );
       void queryClient.invalidateQueries({
         queryKey: ["analytics", projectId, environment],
@@ -42,7 +47,7 @@ export function useEventStream(context: EventsContext, filter: EventsFilter, ena
     };
     source.addEventListener("usage.operation", receive as EventListener);
     return () => source.close();
-  }, [enabled, environment, filter, projectId, queryClient]);
+  }, [enabled, environment, filter, pageSize, projectId, queryClient]);
 }
 
 function matchesFilter(operation: UsageOperation, filter: EventsFilter) {
@@ -59,6 +64,7 @@ function matchesFilter(operation: UsageOperation, filter: EventsFilter) {
 function prependOperation(
   current: InfiniteData<OperationsResponse> | undefined,
   operation: UsageOperation,
+  pageSize: number,
 ) {
   if (
     !current ||
@@ -70,6 +76,9 @@ function prependOperation(
   if (!first) return current;
   return {
     ...current,
-    pages: [{ ...first, operations: [operation, ...first.operations].slice(0, 50) }, ...rest],
+    pages: [
+      { ...first, operations: [operation, ...first.operations].slice(0, pageSize) },
+      ...rest,
+    ],
   };
 }
