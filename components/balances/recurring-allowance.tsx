@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useProjectWorkspace } from "@/components/projects/project-workspace-client";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import { allowanceIntervalLabel, allowanceUTCDateTime } from "@/lib/balances/allowances.format";
 import { useAllowance } from "@/lib/balances/useAllowance";
 import { AllowanceFormDialog } from "./allowance-form-dialog";
 import { AllowancePeriodHistory } from "./allowance-period-history";
@@ -54,27 +55,27 @@ export function RecurringAllowanceSection({
           {policy.current ? (
             <p>
               {policy.current.enabled
-                ? `${policy.current.quantity.toLocaleString()} units each month`
-                : "Monthly grants are stopped"}
+                ? `${policy.current.quantity.toLocaleString()} units every ${allowanceIntervalLabel(policy.current)}`
+                : "Recurring grants are stopped"}
               {policy.current.enabled
                 ? ` · ${policy.current.rolloverCap === 0 ? "Unused allowance resets" : `Carry up to ${policy.current.rolloverCap.toLocaleString()} unused units`}`
                 : ""}
             </p>
           ) : (
-            <p>Scheduled to start {date(policy.startsAt)}.</p>
+            <p>Scheduled to start {allowanceUTCDateTime(policy.startsAt)}.</p>
           )}
           <p className="text-xs text-muted-foreground">
-            Next renewal: {date(policy.nextPeriodAt)} at midnight UTC.
+            Next renewal: {allowanceUTCDateTime(policy.nextPeriodAt)}.
           </p>
           {policy.pending ? (
             <div className="rounded-lg bg-muted p-3 text-xs leading-5">
               <p className="font-medium">
-                Change scheduled for {date(policy.pending.effectiveAt)}
+                Change scheduled for {allowanceUTCDateTime(policy.pending.effectiveAt)}
               </p>
               <p>
                 {policy.pending.enabled
-                  ? `${policy.pending.quantity.toLocaleString()} units per month, with ${policy.pending.rolloverCap === 0 ? "no rollover" : `up to ${policy.pending.rolloverCap.toLocaleString()} units carried over`}.`
-                  : "Monthly grants will stop. Manual grants remain unchanged."}
+                  ? `${policy.pending.quantity.toLocaleString()} units every ${allowanceIntervalLabel(policy.pending)}, with ${policy.pending.rolloverCap === 0 ? "no rollover" : `up to ${policy.pending.rolloverCap.toLocaleString()} units carried over`}.`
+                  : "Recurring grants will stop. Manual grants remain unchanged."}
               </p>
             </div>
           ) : null}
@@ -96,10 +97,4 @@ export function RecurringAllowanceSection({
       ) : null}
     </section>
   );
-}
-function date(value: string) {
-  return new Date(value).toLocaleDateString(undefined, {
-    dateStyle: "medium",
-    timeZone: "UTC",
-  });
 }

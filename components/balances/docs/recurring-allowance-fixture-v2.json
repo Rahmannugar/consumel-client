@@ -1,0 +1,43 @@
+{
+  "environment": "sandbox",
+  "organization": "Atlas Workshop",
+  "project": "Allowance schedules",
+  "customerId": "schedule_customer",
+  "meter": {
+    "meterKey": "api_calls",
+    "name": "API calls",
+    "type": "prepaid"
+  },
+  "startsAt": "2026-11-18T00:15:00Z",
+  "currentRevision": {
+    "intervalUnit": "hour",
+    "intervalCount": 6,
+    "scheduleAnchorAt": "2026-11-18T00:15:00Z",
+    "version": 1,
+    "effectiveAt": "2026-11-18T00:15:00Z",
+    "quantity": 500,
+    "rolloverCap": 1000,
+    "enabled": true
+  },
+  "pendingRevision": {
+    "intervalUnit": "minute",
+    "intervalCount": 30,
+    "scheduleAnchorAt": "2026-11-18T18:15:00Z",
+    "version": 2,
+    "effectiveAt": "2026-11-18T18:15:00Z",
+    "quantity": 500,
+    "rolloverCap": 1000,
+    "enabled": true
+  },
+  "periods": [
+    {
+      "periodStart": "2026-11-18T12:15:00Z",
+      "periodEnd": "2026-11-18T18:15:00Z",
+      "revision": 1,
+      "quantity": 500,
+      "carriedQuantity": 0,
+      "skippedPeriods": 2,
+      "sourceType": "dashboard_user"
+    }
+  ]
+}

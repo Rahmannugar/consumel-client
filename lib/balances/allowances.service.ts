@@ -8,6 +8,9 @@ import type {
 import type { BalanceContext } from "./balances.types";
 
 const revision = z.object({
+  intervalUnit: z.enum(["minute", "hour", "day", "week", "month", "year"]),
+  intervalCount: z.number().int().min(1).max(1000000),
+  scheduleAnchorAt: z.string().datetime(),
   version: z.number().int().positive().max(Number.MAX_SAFE_INTEGER),
   effectiveAt: z.string().datetime(),
   quantity: z.number().int().positive().max(Number.MAX_SAFE_INTEGER),

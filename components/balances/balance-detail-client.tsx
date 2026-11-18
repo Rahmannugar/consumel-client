@@ -220,7 +220,7 @@ function SectionSkeleton() {
 
 function ActivityRow({ item }: { item: BalanceActivity }) {
   const labels = {
-    allowance: "Monthly allowance issued",
+    allowance: "Recurring allowance issued",
     add: "Quantity added",
     set: "Balance adjusted",
     usage: "Usage processed",

@@ -1,19 +1,19 @@
 # Recurring allowance screenshots
 
-The versioned PNGs show the real customer balance workflow in Light Mode,
-without browser chrome, private account context, or developer controls.
-`recurring-allowance-fixture-v1.json` records the disposable Sandbox state used
-for the captures. The allowance integration tests exercise the same prior-period
-and renewal setup; no screenshot state is hard-coded in the application.
+Version 2 shows custom UTC intervals in the real customer balance workflow.
+The cropped Light Mode PNGs exclude browser chrome, private context, and
+developer controls. `recurring-allowance-fixture-v2.json` records the disposable
+Sandbox state used for the captures: an active six-hour allowance with a
+30-minute change scheduled for the next renewal. Version 1 records the earlier
+monthly-only interface.
 
-To refresh these assets, create a disposable local organization, project with
-Sandbox and Live, customer, and prepaid `api_calls` meter. Establish the fixture
-periods in the local database, run the normal allowance worker to renew the
-current period, and use the real public API to schedule the next revision.
-Sign into the disposable organization, open the customer's balance detail,
-and capture the recurring-allowance section and edit dialog in Light Mode.
-Keep the UI, period dates, and fixture description synchronized when recapturing;
-do not seed this fixture into production or an organization's real Sandbox.
+To refresh the current assets, create a disposable local organization, project
+with Sandbox and Live, customer, and prepaid `api_calls` meter. Use the real
+allowance form to grant 500 units every six hours, starting at 00:15 UTC on the
+capture date, with a 1,000-unit rollover cap. Schedule a change to every 30
+minutes. Capture the recurring-allowance section and edit dialog in Light Mode.
+Keep the dates, fixture description, and screenshot version synchronized. Do
+not seed screenshot data into production or an organization's real Sandbox.
 
 When `consumel-docs` is built, publish optimized copies beside the allowance
 guide and synchronize them from these client-owned source assets.

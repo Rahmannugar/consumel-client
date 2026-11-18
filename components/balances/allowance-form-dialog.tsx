@@ -10,9 +10,21 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { APIError } from "@/lib/api/api-client";
 import { allowanceFormSchema } from "@/lib/balances/allowance.validation";
-import type { RecurringAllowance } from "@/lib/balances/allowances.types";
+import { allowanceUTCDateTime } from "@/lib/balances/allowances.format";
+import {
+  type AllowanceIntervalUnit,
+  allowanceIntervalUnits,
+  type RecurringAllowance,
+} from "@/lib/balances/allowances.types";
 import { balanceErrorMessage } from "@/lib/balances/balances.service";
 import { useAllowance, useSaveAllowance } from "@/lib/balances/useAllowance";
 import { useMeters } from "@/lib/meters/useMeters";
@@ -53,8 +65,8 @@ export function AllowanceFormDialog({
       >
         <DialogTitle>Recurring allowance</DialogTitle>
         <DialogDescription className="mt-2">
-          Grant units each month in UTC. Renewal affects this allowance’s units; manual grants
-          keep their own expiration.
+          Grant units on a repeating UTC schedule. Renewal affects this allowance’s units;
+          manual grants keep their own expiration.
         </DialogDescription>
         {!meterKey ? (
           <div className="mt-5">
@@ -147,9 +159,16 @@ function AllowanceForm({
   const revision = policy?.pending ?? policy?.current;
   const [quantity, setQuantity] = useState(String(revision?.quantity ?? ""));
   const [rollover, setRollover] = useState(String(revision?.rolloverCap ?? 0));
+  const [intervalUnit, setIntervalUnit] = useState<AllowanceIntervalUnit>(
+    revision?.intervalUnit ?? "month",
+  );
+  const [intervalCount, setIntervalCount] = useState(String(revision?.intervalCount ?? 1));
+  const [startTime, setStartTime] = useState(() =>
+    (policy?.startsAt ?? new Date().toISOString()).slice(11, 16),
+  );
   const [enabled, setEnabled] = useState(revision?.enabled ?? true);
   const [start, setStart] = useState(() =>
-    policy ? dateFromUTC(policy.startsAt) : new Date(),
+    dateFromUTC(policy?.startsAt ?? new Date().toISOString()),
   );
   const [errors, setErrors] = useState<Record<string, string>>({});
   const submitting = useRef(false);
@@ -161,11 +180,23 @@ function AllowanceForm({
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (submitting.current) return;
+    if (!/^\d{2}:\d{2}$/.test(startTime)) {
+      setErrors({ startsAt: "Choose a start time in UTC." });
+      return;
+    }
     const startsAt = new Date(
-      Date.UTC(start.getFullYear(), start.getMonth(), start.getDate()),
+      Date.UTC(
+        start.getFullYear(),
+        start.getMonth(),
+        start.getDate(),
+        Number(startTime.slice(0, 2)),
+        Number(startTime.slice(3, 5)),
+      ),
     ).toISOString();
     const parsed = allowanceFormSchema.safeParse({
       quantity,
+      intervalUnit,
+      intervalCount,
       rolloverCap: rollover,
       startsAt,
       enabled,
@@ -201,7 +232,7 @@ function AllowanceForm({
       </p>
       <div>
         <Label htmlFor="allowance-quantity">
-          Units per month{" "}
+          Units per renewal{" "}
           <span aria-hidden="true" className="text-destructive">
             *
           </span>
@@ -227,6 +258,55 @@ function AllowanceForm({
           </p>
         ) : null}
       </div>
+      <fieldset className="space-y-2">
+        <legend className="text-sm font-medium">
+          Renew every{" "}
+          <span aria-hidden="true" className="text-destructive">
+            *
+          </span>
+        </legend>
+        <div className="grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)] gap-2">
+          <Input
+            aria-label="Renewal interval count"
+            inputMode="numeric"
+            value={intervalCount}
+            onChange={(event) => setIntervalCount(event.target.value)}
+            required
+            disabled={pending}
+            aria-invalid={Boolean(errors.intervalCount)}
+          />
+          <Select
+            value={intervalUnit}
+            required
+            disabled={pending}
+            onValueChange={(value) => {
+              const unit = allowanceIntervalUnits.find((candidate) => candidate === value);
+              if (unit) setIntervalUnit(unit);
+            }}
+          >
+            <SelectTrigger aria-label="Renewal interval unit" className="w-full">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {allowanceIntervalUnits.map((unit) => (
+                <SelectItem key={unit} value={unit}>
+                  {unit.charAt(0).toUpperCase() + unit.slice(1)}
+                  {intervalCount === "1" ? "" : "s"}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        {errors.intervalCount ? (
+          <p role="alert" className="text-xs text-destructive">
+            {errors.intervalCount}
+          </p>
+        ) : null}
+        <p className="text-xs text-muted-foreground">
+          Minutes through weeks use elapsed time. Months and years follow the calendar and clamp
+          shorter months without drifting.
+        </p>
+      </fieldset>
       <div>
         <Label htmlFor="allowance-rollover">
           Maximum units to carry over{" "}
@@ -247,7 +327,7 @@ function AllowanceForm({
         />
         <p id="allowance-rollover-help" className="mt-2 text-xs text-muted-foreground">
           Use 0 to reset. A positive cap carries unused allowance units in addition to the new
-          monthly grant.
+          grant.
         </p>
         {errors.rolloverCap ? (
           <p role="alert" className="mt-1 text-xs text-destructive">
@@ -265,7 +345,7 @@ function AllowanceForm({
           ) : null}
         </Label>
         {policy ? (
-          <p className="mt-2 text-sm">{policy.startsAt.slice(0, 10)} · midnight UTC</p>
+          <p className="mt-2 text-sm">{allowanceUTCDateTime(policy.startsAt)}</p>
         ) : (
           <ByteDatePicker
             className="mt-2 w-full"
@@ -298,10 +378,35 @@ function AllowanceForm({
             )}
           </ByteDatePicker>
         )}
+        {!policy ? (
+          <div className="mt-3">
+            <Label htmlFor="allowance-start-time">
+              Start time (UTC){" "}
+              <span aria-hidden="true" className="text-destructive">
+                *
+              </span>
+            </Label>
+            <Input
+              id="allowance-start-time"
+              className="mt-2"
+              type="time"
+              step={60}
+              value={startTime}
+              onChange={(event) => setStartTime(event.target.value)}
+              required
+              disabled={pending}
+            />
+          </div>
+        ) : null}
         <p className="mt-2 text-xs text-muted-foreground">
-          The day repeats monthly. Shorter months use their last day. A start date in the past
-          grants the full current period, without earlier credits or proration.
+          All dates and times here use UTC. A past start grants the full current period without
+          earlier credits or proration.
         </p>
+        {errors.startsAt ? (
+          <p role="alert" className="mt-1 text-xs text-destructive">
+            {errors.startsAt}
+          </p>
+        ) : null}
       </div>
       <label className="flex items-center gap-2 text-sm">
         <input
@@ -310,16 +415,12 @@ function AllowanceForm({
           onChange={(event) => setEnabled(event.target.checked)}
           disabled={pending}
         />{" "}
-        Issue monthly grants
+        Issue recurring grants
       </label>
       {policy ? (
         <p className="rounded-lg bg-muted p-3 text-xs leading-5">
           Changes, including stopping grants, take effect on{" "}
-          {new Date(policy.nextPeriodAt).toLocaleDateString(undefined, {
-            timeZone: "UTC",
-            dateStyle: "medium",
-          })}{" "}
-          at midnight UTC. The current period is preserved.
+          {allowanceUTCDateTime(policy.nextPeriodAt)}. The current period is preserved.
         </p>
       ) : null}
       {errors.form ? (

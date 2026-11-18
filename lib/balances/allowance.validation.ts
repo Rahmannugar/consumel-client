@@ -16,6 +16,11 @@ const quantity = (minimum: number) =>
 export const allowanceFormSchema = z
   .object({
     quantity: quantity(1),
+    intervalUnit: z.enum(["minute", "hour", "day", "week", "month", "year"]),
+    intervalCount: quantity(1).refine(
+      (value) => value <= 1000000,
+      "Use an interval from 1 to 1,000,000.",
+    ),
     rolloverCap: quantity(0),
     startsAt: z
       .string()
@@ -25,9 +30,10 @@ export const allowanceFormSchema = z
         return (
           date.getUTCFullYear() >= 2000 &&
           date.getUTCFullYear() <= 9998 &&
-          value.endsWith("T00:00:00.000Z")
+          date.getUTCSeconds() === 0 &&
+          date.getUTCMilliseconds() === 0
         );
-      }, "Choose a renewal start date."),
+      }, "Choose a valid UTC start date and time."),
     enabled: z.boolean(),
   })
   .refine((value) => Number.isSafeInteger(value.quantity + value.rolloverCap), {

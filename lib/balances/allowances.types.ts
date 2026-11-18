@@ -1,4 +1,16 @@
+export const allowanceIntervalUnits = [
+  "minute",
+  "hour",
+  "day",
+  "week",
+  "month",
+  "year",
+] as const;
+export type AllowanceIntervalUnit = (typeof allowanceIntervalUnits)[number];
 export type AllowanceRevision = {
+  intervalUnit: AllowanceIntervalUnit;
+  intervalCount: number;
+  scheduleAnchorAt: string;
   version: number;
   effectiveAt: string;
   quantity: number;
@@ -14,6 +26,8 @@ export type RecurringAllowance = {
   pending: AllowanceRevision | null;
 };
 export type AllowanceInput = {
+  intervalUnit: AllowanceIntervalUnit;
+  intervalCount: number;
   startsAt: string;
   quantity: number;
   rolloverCap: number;

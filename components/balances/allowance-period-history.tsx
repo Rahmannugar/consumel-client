@@ -3,6 +3,7 @@
 import { useProjectWorkspace } from "@/components/projects/project-workspace-client";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import { allowanceUTCDateTime } from "@/lib/balances/allowances.format";
 import { useAllowancePeriods } from "@/lib/balances/useAllowance";
 
 export function AllowancePeriodHistory({
@@ -49,7 +50,8 @@ export function AllowancePeriodHistory({
             >
               <div>
                 <p>
-                  {date(period.periodStart)} – {date(period.periodEnd)}
+                  {allowanceUTCDateTime(period.periodStart)} –{" "}
+                  {allowanceUTCDateTime(period.periodEnd)}
                 </p>
                 <p className="mt-1 text-muted-foreground">
                   Policy version {period.revision} ·{" "}
@@ -65,7 +67,7 @@ export function AllowancePeriodHistory({
               </div>
               <p className="shrink-0 tabular-nums sm:text-right">
                 {period.quantity === 0
-                  ? "Monthly grants stopped"
+                  ? "Recurring grants stopped"
                   : `${period.quantity.toLocaleString()} units issued`}
                 <br />
                 <span className="mt-1 inline-block text-muted-foreground">
@@ -89,10 +91,4 @@ export function AllowancePeriodHistory({
       ) : null}
     </div>
   );
-}
-function date(value: string) {
-  return new Date(value).toLocaleDateString(undefined, {
-    dateStyle: "medium",
-    timeZone: "UTC",
-  });
 }
