@@ -1,4 +1,7 @@
+import { analyticsInterval } from "@/lib/analytics/analytics.service";
 import { APIError, apiRequest } from "@/lib/api/api-client";
+import { eventRange } from "@/lib/events/events.service";
+import type { EventsFilter } from "@/lib/events/events.types";
 import type {
   CreatedProjectAPIKey,
   CreateProjectInput,
@@ -6,6 +9,7 @@ import type {
   ProjectAPIKey,
   ProjectAPIKeyStatus,
   ProjectEnvironment,
+  ProjectPortfolio,
   ProjectsResponse,
 } from "./projects.types";
 
@@ -31,6 +35,24 @@ export async function loadProjects(): Promise<ProjectsResponse> {
       502,
       "invalid_response",
       "Consumel returned an invalid project response.",
+    );
+  }
+  return response;
+}
+
+export async function loadProjectPortfolio(
+  environment: ProjectEnvironment["name"],
+  filter: Pick<EventsFilter, "period" | "from" | "to">,
+): Promise<ProjectPortfolio> {
+  const range = eventRange({ status: "", ...filter });
+  const interval = analyticsInterval(range.from, range.to);
+  const query = new URLSearchParams({ environment, ...range, interval });
+  const response = await apiRequest(`/v1/projects/portfolio?${query.toString()}`);
+  if (!isProjectPortfolio(response)) {
+    throw new APIError(
+      502,
+      "invalid_response",
+      "Consumel returned an invalid project portfolio response.",
     );
   }
   return response;
@@ -129,6 +151,46 @@ function apiKeyPath(projectID: string, environment: ProjectEnvironment["name"]) 
 
 function isProjectsResponse(value: unknown): value is ProjectsResponse {
   return isRecord(value) && Array.isArray(value.projects) && value.projects.every(isProject);
+}
+
+function isProjectPortfolio(value: unknown): value is ProjectPortfolio {
+  return (
+    isRecord(value) &&
+    (value.environment === "sandbox" || value.environment === "live") &&
+    typeof value.from === "string" &&
+    typeof value.to === "string" &&
+    (value.interval === "hour" || value.interval === "day") &&
+    isPortfolioOutcomes(value.summary) &&
+    Array.isArray(value.buckets) &&
+    value.buckets.every(
+      (bucket) =>
+        isRecord(bucket) && typeof bucket.start === "string" && isPortfolioOutcomes(bucket),
+    ) &&
+    Array.isArray(value.projects) &&
+    value.projects.every(isPortfolioProject)
+  );
+}
+
+function isPortfolioOutcomes(value: unknown) {
+  return (
+    isRecord(value) &&
+    typeof value.allowedOperations === "number" &&
+    typeof value.blockedOperations === "number"
+  );
+}
+
+function isPortfolioProject(value: unknown) {
+  return (
+    isRecord(value) &&
+    typeof value.id === "string" &&
+    typeof value.name === "string" &&
+    typeof value.slug === "string" &&
+    typeof value.environmentId === "string" &&
+    (value.activatedAt === null || typeof value.activatedAt === "string") &&
+    typeof value.allowedOperations === "number" &&
+    typeof value.blockedOperations === "number" &&
+    (value.lastActivityAt === null || typeof value.lastActivityAt === "string")
+  );
 }
 
 function isProject(value: unknown): value is Project {

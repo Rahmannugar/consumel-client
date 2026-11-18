@@ -30,7 +30,7 @@ export async function loadUsageAnalytics(
   return response;
 }
 
-function analyticsInterval(from: string, to: string): AnalyticsInterval {
+export function analyticsInterval(from: string, to: string): AnalyticsInterval {
   const range = new Date(to).getTime() - new Date(from).getTime();
   return range <= 48 * 60 * 60 * 1000 ? "hour" : "day";
 }

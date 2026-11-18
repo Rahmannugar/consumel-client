@@ -4,6 +4,7 @@ import { ArrowLeftIcon, SlidersHorizontalIcon } from "@phosphor-icons/react";
 import Link from "next/link";
 import { useState } from "react";
 import { BalanceFormDialog } from "@/components/balances/balance-form-dialog";
+import { RecurringAllowanceSection } from "@/components/balances/recurring-allowance";
 import { useProjectWorkspace } from "@/components/projects/project-workspace-client";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -76,6 +77,11 @@ export function BalanceDetailClient({
         </p>
       </section>
 
+      <RecurringAllowanceSection
+        key={`${context.projectId}:${context.environment}:${customerId}:${meterKey}`}
+        customerId={customerId}
+        meterKey={meterKey}
+      />
       <BalanceActivitySection history={history} />
       <BalanceCompositionSection grants={grants} />
 
@@ -214,6 +220,7 @@ function SectionSkeleton() {
 
 function ActivityRow({ item }: { item: BalanceActivity }) {
   const labels = {
+    allowance: "Monthly allowance issued",
     add: "Quantity added",
     set: "Balance adjusted",
     usage: "Usage processed",
@@ -256,6 +263,8 @@ function activitySourceLabel(sourceType: string) {
       return "Dashboard user";
     case "api_key":
       return "API key";
+    case "policy_job":
+      return "Recurring allowance";
     case "system":
       return "System";
     default:

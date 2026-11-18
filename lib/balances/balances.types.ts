@@ -35,7 +35,7 @@ export type EntitlementGrantsResponse = {
 
 export type BalanceActivity = {
   id: string;
-  kind: "add" | "set" | "usage" | "expiration";
+  kind: "add" | "set" | "usage" | "expiration" | "allowance";
   quantityChange: number;
   resultingQuantity: number | null;
   expiresAt: string | null;

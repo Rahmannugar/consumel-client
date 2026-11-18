@@ -14,13 +14,17 @@ export function useProjectEnvironment(projectID: string) {
 
   const selectEnvironment = useCallback(
     (nextEnvironment: ProjectEnvironmentName) => {
-      sessionStorage.setItem(storageKey(projectID), nextEnvironment);
+      saveProjectEnvironment(projectID, nextEnvironment);
       setEnvironment(nextEnvironment);
     },
     [projectID],
   );
 
   return { environment, selectEnvironment };
+}
+
+export function saveProjectEnvironment(projectID: string, environment: ProjectEnvironmentName) {
+  sessionStorage.setItem(storageKey(projectID), environment);
 }
 
 function storageKey(projectID: string) {

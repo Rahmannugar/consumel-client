@@ -14,6 +14,7 @@ export function MeterCombobox({
   value,
   onChange,
   disabled,
+  required = false,
   invalid,
   describedBy,
   hasMore,
@@ -25,6 +26,7 @@ export function MeterCombobox({
   value: string;
   onChange: (value: string) => void;
   disabled: boolean;
+  required?: boolean;
   invalid: boolean;
   describedBy?: string;
   hasMore: boolean;
@@ -60,6 +62,7 @@ export function MeterCombobox({
           type="button"
           role="combobox"
           aria-expanded={open}
+          aria-required={required || undefined}
           aria-controls={`${id}-options`}
           aria-invalid={invalid}
           aria-describedby={describedBy}

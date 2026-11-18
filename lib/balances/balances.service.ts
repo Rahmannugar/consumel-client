@@ -162,7 +162,8 @@ function isBalanceActivityResponse(value: unknown): value is BalanceActivityResp
       (item) =>
         isRecord(item) &&
         typeof item.id === "string" &&
-        (item.kind === "add" ||
+        (item.kind === "allowance" ||
+          item.kind === "add" ||
           item.kind === "set" ||
           item.kind === "usage" ||
           item.kind === "expiration") &&

@@ -18,6 +18,33 @@ export type ProjectsResponse = {
   projects: Project[];
 };
 
+export type ProjectPortfolioBucket = {
+  start: string;
+  allowedOperations: number;
+  blockedOperations: number;
+};
+
+export type ProjectPortfolioProject = {
+  id: string;
+  name: string;
+  slug: string;
+  environmentId: string;
+  activatedAt: string | null;
+  allowedOperations: number;
+  blockedOperations: number;
+  lastActivityAt: string | null;
+};
+
+export type ProjectPortfolio = {
+  environment: ProjectEnvironment["name"];
+  from: string;
+  to: string;
+  interval: "hour" | "day";
+  summary: Omit<ProjectPortfolioBucket, "start">;
+  buckets: ProjectPortfolioBucket[];
+  projects: ProjectPortfolioProject[];
+};
+
 export type CreateProjectInput = {
   name: string;
 };

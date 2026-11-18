@@ -370,6 +370,12 @@ function ProjectMenu({
                 </DropdownMenuItem>
               ))}
               <DropdownMenuSeparator />
+              <DropdownMenuItem asChild className="min-h-9 px-2.5">
+                <Link href="/projects">
+                  <BuildingsIcon className="text-muted-foreground" />
+                  <span>View all projects</span>
+                </Link>
+              </DropdownMenuItem>
               <DropdownMenuItem className="min-h-9 px-2.5" onSelect={() => setCreateOpen(true)}>
                 <PlusIcon className="text-muted-foreground" />
                 <span>Create project</span>
@@ -400,7 +406,7 @@ function ProjectMenu({
   );
 }
 
-function CreateProjectDialog({
+export function CreateProjectDialog({
   open,
   onOpenChange,
   onCreated,
@@ -460,7 +466,12 @@ function CreateProjectDialog({
         </DialogDescription>
         <form className="mt-6 space-y-5" noValidate onSubmit={submit}>
           <div className="space-y-2">
-            <Label htmlFor="new-project-name">Project name</Label>
+            <Label htmlFor="new-project-name">
+              Project name{" "}
+              <span className="text-destructive" aria-hidden="true">
+                *
+              </span>
+            </Label>
             <Input
               ref={inputRef}
               id="new-project-name"

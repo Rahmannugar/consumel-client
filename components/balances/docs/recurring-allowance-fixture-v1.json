@@ -1,0 +1,44 @@
+{
+  "environment": "sandbox",
+  "organization": "Atlas Workshop",
+  "project": "Allowance validation",
+  "customerId": "allowance_customer",
+  "meter": {
+    "meterKey": "api_calls",
+    "name": "API calls",
+    "type": "prepaid"
+  },
+  "capturedAt": "2026-11-18",
+  "startsAt": "2026-10-01T00:00:00Z",
+  "currentRevision": {
+    "version": 1,
+    "quantity": 10000,
+    "rolloverCap": 20000,
+    "enabled": true
+  },
+  "pendingRevision": {
+    "version": 2,
+    "effectiveAt": "2026-12-01T00:00:00Z",
+    "quantity": 15000,
+    "rolloverCap": 20000,
+    "enabled": true
+  },
+  "periods": [
+    {
+      "start": "2026-10-01T00:00:00Z",
+      "end": "2026-11-01T00:00:00Z",
+      "quantity": 10000,
+      "carry": 0,
+      "remainingQuantity": 10000
+    },
+    {
+      "start": "2026-11-01T00:00:00Z",
+      "end": "2026-12-01T00:00:00Z",
+      "quantity": 20000,
+      "carry": 10000,
+      "remainingQuantity": 20000
+    }
+  ],
+  "source": "api_key",
+  "availableQuantity": 20000
+}
