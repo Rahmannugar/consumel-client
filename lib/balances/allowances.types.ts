@@ -8,6 +8,10 @@ export const allowanceIntervalUnits = [
 ] as const;
 export type AllowanceIntervalUnit = (typeof allowanceIntervalUnits)[number];
 export type AllowanceRevision = {
+  sourceKind: "direct" | "plan" | "override";
+  planKey: string | null;
+  planName: string | null;
+  planVersion: number | null;
   intervalUnit: AllowanceIntervalUnit;
   intervalCount: number;
   scheduleAnchorAt: string;
@@ -22,6 +26,7 @@ export type RecurringAllowance = {
   startsAt: string;
   nextPeriodAt: string;
   version: number;
+  assignedPlan: { key: string; name: string } | null;
   current: AllowanceRevision | null;
   pending: AllowanceRevision | null;
 };
@@ -36,6 +41,10 @@ export type AllowanceInput = {
 };
 
 export type AllowancePeriod = {
+  sourceKind: "direct" | "plan" | "override";
+  planKey: string | null;
+  planName: string | null;
+  planVersion: number | null;
   periodStart: string;
   periodEnd: string;
   revision: number;

@@ -36,10 +36,15 @@ export function MetersClient() {
           Meters
         </h1>
         {!inactive ? (
-          <Button size="compact" onClick={() => setCreating(true)}>
-            <PlusIcon />
-            Create meter
-          </Button>
+          <div className="flex flex-wrap gap-2">
+            <Button asChild size="compact" variant="secondary">
+              <Link href={`/dashboard/${project.slug}/allowance-plans`}>Allowance plans</Link>
+            </Button>
+            <Button size="compact" onClick={() => setCreating(true)}>
+              <PlusIcon />
+              Create meter
+            </Button>
+          </div>
         ) : null}
       </div>
       {!inactive ? (

@@ -57,6 +57,16 @@ export function AllowancePeriodHistory({
                   Policy version {period.revision} ·{" "}
                   {period.sourceType === "api_key" ? "API key" : "Dashboard user"}
                 </p>
+                <p className="mt-1 text-muted-foreground">
+                  {period.sourceKind === "plan"
+                    ? "Allowance plan"
+                    : period.sourceKind === "override"
+                      ? "Customer override"
+                      : "Customer-specific allowance"}
+                  {period.planKey
+                    ? ` · ${period.planName ?? period.planKey}${period.planVersion ? ` (plan version ${period.planVersion})` : ""}`
+                    : ""}
+                </p>
                 {period.skippedPeriods > 0 ? (
                   <p className="mt-1 max-w-lg leading-5 text-muted-foreground">
                     {period.skippedPeriods} earlier{" "}

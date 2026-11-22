@@ -114,7 +114,7 @@ function WorkspaceShell({
 
   const activeSection = pathname.includes("/customers")
     ? "customers"
-    : pathname.includes("/meters")
+    : pathname.includes("/meters") || pathname.includes("/allowance-plans")
       ? "meters"
       : pathname.includes("/events")
         ? "events"

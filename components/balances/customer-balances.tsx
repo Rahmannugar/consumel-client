@@ -3,6 +3,7 @@
 import { ArrowRightIcon, SlidersHorizontalIcon, WalletIcon } from "@phosphor-icons/react";
 import Link from "next/link";
 import { useState } from "react";
+import { AllowanceSourceDialog } from "@/components/allowance-plans/allowance-source-dialog";
 import { AllowanceFormDialog } from "@/components/balances/allowance-form-dialog";
 import { BalanceFormDialog } from "@/components/balances/balance-form-dialog";
 import { useProjectWorkspace } from "@/components/projects/project-workspace-client";
@@ -22,6 +23,7 @@ export function CustomerBalances({ customerId }: { customerId: string }) {
     customerId,
   );
   const [allowanceOpen, setAllowanceOpen] = useState(false);
+  const [planOpen, setPlanOpen] = useState(false);
   const [dialog, setDialog] = useState<DialogState | null>(null);
 
   return (
@@ -34,6 +36,9 @@ export function CustomerBalances({ customerId }: { customerId: string }) {
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
+          <Button size="compact" variant="secondary" onClick={() => setPlanOpen(true)}>
+            Use allowance plan
+          </Button>
           <Button size="compact" variant="secondary" onClick={() => setAllowanceOpen(true)}>
             Recurring allowance
           </Button>
@@ -87,8 +92,19 @@ export function CustomerBalances({ customerId }: { customerId: string }) {
         />
       ) : null}
 
+      {planOpen ? (
+        <AllowanceSourceDialog
+          key={`${project.id}:${environment.name}:${customerId}`}
+          customerId={customerId}
+          onClose={() => setPlanOpen(false)}
+        />
+      ) : null}
       {allowanceOpen ? (
-        <AllowanceFormDialog customerId={customerId} onClose={() => setAllowanceOpen(false)} />
+        <AllowanceFormDialog
+          key={`${project.id}:${environment.name}:${customerId}`}
+          customerId={customerId}
+          onClose={() => setAllowanceOpen(false)}
+        />
       ) : null}
       {dialog ? (
         <BalanceFormDialog

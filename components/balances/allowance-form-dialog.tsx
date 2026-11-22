@@ -227,6 +227,13 @@ function AllowanceForm({
   const pending = save.isPending;
   return (
     <form className="mt-5 space-y-5" onSubmit={submit} noValidate aria-busy={pending}>
+      {policy?.assignedPlan ? (
+        <p className="rounded-lg bg-muted p-3 text-xs leading-5">
+          Saving creates a customer-specific override. Future changes to{" "}
+          {policy.assignedPlan.name} will not replace this override. Use the plan again to
+          restore inheritance.
+        </p>
+      ) : null}
       <p className="text-sm">
         Meter <code className="ml-2 text-xs">{meterKey}</code>
       </p>

@@ -16,6 +16,10 @@ const revision = z.object({
   quantity: z.number().int().positive().max(Number.MAX_SAFE_INTEGER),
   rolloverCap: z.number().int().nonnegative().max(Number.MAX_SAFE_INTEGER),
   enabled: z.boolean(),
+  sourceKind: z.enum(["direct", "plan", "override"]),
+  planKey: z.string().nullable(),
+  planName: z.string().nullable(),
+  planVersion: z.number().int().positive().max(Number.MAX_SAFE_INTEGER).nullable(),
 });
 const allowance = z.object({
   id: z.string().uuid(),
@@ -24,11 +28,12 @@ const allowance = z.object({
   version: z.number().int().positive().max(Number.MAX_SAFE_INTEGER),
   current: revision.nullable(),
   pending: revision.nullable(),
+  assignedPlan: z.object({ key: z.string(), name: z.string() }).nullable(),
 });
 function path(context: BalanceContext, customerId: string, meterKey: string) {
   return `/v1/projects/${encodeURIComponent(context.projectId)}/environments/${context.environment}/customers/${encodeURIComponent(customerId)}/balances/${encodeURIComponent(meterKey)}/allowance`;
 }
-function parseAllowance(value: unknown): RecurringAllowance {
+export function parseAllowance(value: unknown): RecurringAllowance {
   const parsed = allowance.safeParse(value);
   if (!parsed.success)
     throw new APIError(
@@ -70,6 +75,10 @@ export async function saveAllowance(
 }
 
 const period = z.object({
+  sourceKind: z.enum(["direct", "plan", "override"]),
+  planKey: z.string().nullable(),
+  planName: z.string().nullable(),
+  planVersion: z.number().int().positive().max(Number.MAX_SAFE_INTEGER).nullable(),
   periodStart: z.string().datetime(),
   periodEnd: z.string().datetime(),
   revision: z.number().int().positive().max(Number.MAX_SAFE_INTEGER),

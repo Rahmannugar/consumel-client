@@ -1,0 +1,26 @@
+{
+  "captureDate": "2026-11-22",
+  "environment": "sandbox",
+  "meterKey": "api_requests",
+  "current": {
+    "planKey": "basic",
+    "planName": "Basic API requests",
+    "planVersion": 1,
+    "intervalUnit": "hour",
+    "intervalCount": 6,
+    "quantity": 1000,
+    "rolloverCap": 500,
+    "startsAt": "2026-11-22T04:20:00Z"
+  },
+  "pending": {
+    "planKey": "team_api",
+    "planName": "Team API requests",
+    "planVersion": 2,
+    "intervalUnit": "month",
+    "intervalCount": 1,
+    "quantity": 3000,
+    "rolloverCap": 1000,
+    "effectiveAt": "2026-11-22T10:20:00Z"
+  },
+  "creationDialogQuantity": 2500
+}
